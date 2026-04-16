@@ -4,7 +4,7 @@ import { formatDate, planColor, planLabel, cn } from '@/lib/utils'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Search, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
+import { IonIcon } from '@/components/ui/IonIcon'
 import type { AdminUser } from '@/types'
 
 const PLANS = ['', 'free', 'pro', 'premium']
@@ -49,14 +49,14 @@ export function UsersPage() {
           <p className="text-sm text-gray-500 dark:text-gray-400">{total} registrados</p>
         </div>
         <Button variant="secondary" size="sm" onClick={load} loading={loading}>
-          <RefreshCw size={14} /> Atualizar
+          <IonIcon name="refresh-outline" size={14} /> Atualizar
         </Button>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <IonIcon name="search-outline" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             value={search} onChange={e => { setSearch(e.target.value); setPage(1) }}
             placeholder="Buscar por nome ou e-mail..."
@@ -133,10 +133,10 @@ export function UsersPage() {
             <p className="text-xs text-gray-500 dark:text-gray-400">Página {page} de {totalPages}</p>
             <div className="flex gap-2">
               <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
-                <ChevronLeft size={14} />
+                <IonIcon name="chevron-back-outline" size={14} />
               </Button>
               <Button variant="secondary" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
-                <ChevronRight size={14} />
+                <IonIcon name="chevron-forward-outline" size={14} />
               </Button>
             </div>
           </div>

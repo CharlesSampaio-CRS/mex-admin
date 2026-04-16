@@ -3,15 +3,15 @@ import { apiAdminJobs, apiAdminTriggerJob } from '@/lib/api'
 import { Card, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { Play, CheckCircle2, XCircle, Clock, AlertCircle } from 'lucide-react'
+import { IonIcon } from '@/components/ui/IonIcon'
 import type { JobStatus } from '@/types'
 import { formatRelative } from '@/lib/utils'
 
 function JobIcon({ status }: { status: string }) {
-  if (status === 'running') return <Clock className="w-4 h-4 text-blue-400 animate-spin" />
-  if (status === 'success') return <CheckCircle2 className="w-4 h-4 text-green-400" />
-  if (status === 'failed') return <XCircle className="w-4 h-4 text-red-400" />
-  return <AlertCircle className="w-4 h-4 text-gray-400" />
+  if (status === 'running') return <IonIcon name="time-outline" size={16} className="text-blue-400 animate-spin" />
+  if (status === 'success') return <IonIcon name="checkmark-circle-outline" size={16} className="text-green-400" />
+  if (status === 'error')   return <IonIcon name="close-circle-outline" size={16} className="text-red-400" />
+  return <IonIcon name="alert-circle-outline" size={16} className="text-gray-400" />
 }
 
 export function JobsPage() {
@@ -75,7 +75,7 @@ export function JobsPage() {
                 loading={triggering === job.job_id}
                 onClick={() => trigger(job.job_id)}
               >
-                <Play className="w-3 h-3 mr-1" />
+                <IonIcon name="play-outline" size={12} className="mr-1" />
                 Executar
               </Button>
             </CardBody>
@@ -84,7 +84,7 @@ export function JobsPage() {
 
         {jobs.length === 0 && (
           <div className="text-center py-16 text-gray-400">
-            <AlertCircle className="w-10 h-10 mx-auto mb-3 opacity-40" />
+            <IonIcon name="alert-circle-outline" size={40} className="mx-auto mb-3 opacity-40" />
             <p className="text-sm">Nenhum job encontrado</p>
           </div>
         )}

@@ -1,5 +1,5 @@
 import { Card, CardBody } from '@/components/ui/Card'
-import { Settings } from 'lucide-react'
+import { IonIcon } from '@/components/ui/IonIcon'
 
 export function SettingsPage() {
   return (
@@ -10,7 +10,7 @@ export function SettingsPage() {
       </div>
       <Card>
         <CardBody className="flex flex-col items-center justify-center py-16 gap-4">
-          <Settings className="w-12 h-12 text-gray-300 dark:text-gray-600" />
+          <IonIcon name="settings-outline" size={48} className="text-gray-300 dark:text-gray-600" />
           <p className="text-sm text-gray-500 dark:text-gray-400">Em breve</p>
         </CardBody>
       </Card>

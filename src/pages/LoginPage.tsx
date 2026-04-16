@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { apiLogin } from '@/lib/api'
 import { Button } from '@/components/ui/Button'
-import { Eye, EyeOff } from 'lucide-react'
+import { IonIcon } from '@/components/ui/IonIcon'
 
 export function LoginPage() {
   const { login } = useAuth()
@@ -71,7 +71,7 @@ export function LoginPage() {
                   />
                   <button type="button" onClick={() => setShowPw(v => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                    {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                    {showPw ? <IonIcon name="eye-off-outline" size={16} /> : <IonIcon name="eye-outline" size={16} />}
                   </button>
                 </div>
               </div>

@@ -3,10 +3,7 @@ import { apiDashboardStats } from '@/lib/api'
 import { formatCurrency, planColor, planLabel } from '@/lib/utils'
 import { Card, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
-import {
-  Users, TicketCheck, DollarSign, Repeat2,
-  TrendingUp, UserCheck, Crown, Flame,
-} from 'lucide-react'
+import { IonIcon } from '@/components/ui/IonIcon'
 import {
   ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts'
@@ -14,14 +11,14 @@ import type { DashboardStats } from '@/types'
 
 const PLAN_COLORS = { free: '#6b7280', pro: '#3b82f6', premium: '#f59e0b' }
 
-function StatCard({ icon: Icon, label, value, sub, color }: {
-  icon: React.ElementType; label: string; value: string | number; sub?: string; color: string
+function StatCard({ icon, label, value, sub, color }: {
+  icon: string; label: string; value: string | number; sub?: string; color: string
 }) {
   return (
     <Card>
       <CardBody className="flex items-start gap-4">
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
-          <Icon size={18} />
+          <IonIcon name={icon} size={18} />
         </div>
         <div>
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">{label}</p>
@@ -70,10 +67,10 @@ export function DashboardPage() {
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Users}       label="Total usuários"  value={stats.total_users}   sub={`+${stats.new_users_7d} últimos 7d`}  color="bg-blue-500/10 text-blue-500" />
-        <StatCard icon={Crown}       label="Premium"         value={stats.premium_users} sub={`${stats.pro_users} Pro`}              color="bg-amber-500/10 text-amber-500" />
-        <StatCard icon={DollarSign}  label="MRR estimado"    value={formatCurrency(stats.mrr_estimate)} sub="mensal"                color="bg-emerald-500/10 text-emerald-500" />
-        <StatCard icon={TicketCheck} label="Tickets abertos" value={stats.open_tickets}  sub={`${stats.total_tickets} total`}        color="bg-purple-500/10 text-purple-500" />
+        <StatCard icon="people-outline"          label="Total usuários"  value={stats.total_users}   sub={`+${stats.new_users_7d} últimos 7d`}  color="bg-blue-500/10 text-blue-500" />
+        <StatCard icon="ribbon-outline"           label="Premium"         value={stats.premium_users} sub={`${stats.pro_users} Pro`}              color="bg-amber-500/10 text-amber-500" />
+        <StatCard icon="cash-outline"             label="MRR estimado"    value={formatCurrency(stats.mrr_estimate)} sub="mensal"                color="bg-emerald-500/10 text-emerald-500" />
+        <StatCard icon="ticket-outline"           label="Tickets abertos" value={stats.open_tickets}  sub={`${stats.total_tickets} total`}        color="bg-purple-500/10 text-purple-500" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -113,13 +110,13 @@ export function DashboardPage() {
             <p className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Crescimento</p>
             <div className="grid grid-cols-2 gap-4">
               {[
-                { icon: TrendingUp,  label: 'Novos (7d)',  value: stats.new_users_7d,   color: 'text-blue-400' },
-                { icon: UserCheck,   label: 'Novos (30d)', value: stats.new_users_30d,  color: 'text-emerald-400' },
-                { icon: Repeat2,     label: 'Exchanges',   value: stats.active_exchanges, color: 'text-purple-400' },
-                { icon: Flame,       label: 'Tickets',     value: stats.total_tickets,  color: 'text-amber-400' },
-              ].map(({ icon: Icon, label, value, color }) => (
+                { icon: 'trending-up-outline',     label: 'Novos (7d)',  value: stats.new_users_7d,     color: 'text-blue-400' },
+                { icon: 'person-add-outline',      label: 'Novos (30d)', value: stats.new_users_30d,    color: 'text-emerald-400' },
+                { icon: 'swap-horizontal-outline', label: 'Exchanges',   value: stats.active_exchanges, color: 'text-purple-400' },
+                { icon: 'flame-outline',           label: 'Tickets',     value: stats.total_tickets,    color: 'text-amber-400' },
+              ].map(({ icon, label, value, color }) => (
                 <div key={label} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/3">
-                  <Icon size={16} className={color} />
+                  <IonIcon name={icon} size={16} className={color} />
                   <div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
                     <p className="text-lg font-bold text-gray-900 dark:text-white">{value}</p>

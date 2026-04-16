@@ -4,7 +4,7 @@ import { formatDate, formatRelative, statusColor, statusLabel, cn } from '@/lib/
 import { Card, CardHeader } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { RefreshCw, Send, ChevronRight, X } from 'lucide-react'
+import { IonIcon } from '@/components/ui/IonIcon'
 import type { SupportTicket } from '@/types'
 
 const STATUSES = [
@@ -77,7 +77,7 @@ export function SupportPage() {
           <p className="text-sm text-gray-500 dark:text-gray-400">{tickets.length} tickets</p>
         </div>
         <Button variant="secondary" size="sm" onClick={load} loading={loading}>
-          <RefreshCw size={14} /> Atualizar
+          <IonIcon name="refresh-outline" size={14} /> Atualizar
         </Button>
       </div>
 
@@ -119,7 +119,7 @@ export function SupportPage() {
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{t.email}</p>
               <div className="flex items-center justify-between mt-2">
                 <span className="text-xs text-gray-400">{formatRelative(t.created_at)}</span>
-                <ChevronRight size={12} className="text-gray-400" />
+                <IonIcon name="chevron-forward-outline" size={12} className="text-gray-400" />
               </div>
             </button>
           ))}
@@ -151,7 +151,7 @@ export function SupportPage() {
                       <option value="cancelled">Cancelado</option>
                     </select>
                     <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-700 dark:hover:text-white">
-                      <X size={16} />
+                      <IonIcon name="close-outline" size={18} />
                     </button>
                   </div>
                 </div>
@@ -200,7 +200,7 @@ export function SupportPage() {
                     className="flex-1 text-sm px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white placeholder-gray-400 outline-none focus:border-primary resize-none"
                   />
                   <Button onClick={handleReply} loading={sending} disabled={!reply.trim()} className="shrink-0 self-end">
-                    <Send size={14} />
+                    <IonIcon name="send-outline" size={14} />
                   </Button>
                 </div>
               )}

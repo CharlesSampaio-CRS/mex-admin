@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { apiAdminExchangeStats } from '@/lib/api'
 import { Card, CardBody } from '@/components/ui/Card'
+import { ExchangeLogo } from '@/components/ui/ExchangeLogo'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import type { ExchangeStats } from '@/types'
 
@@ -46,12 +47,10 @@ export function ExchangesPage() {
       </Card>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {data.map((e, i) => (
+        {data.map((e) => (
           <Card key={e.exchange_id}>
             <CardBody className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold" style={{ background: COLORS[i % COLORS.length] }}>
-                {e.name.charAt(0)}
-              </div>
+              <ExchangeLogo exchangeId={e.exchange_id} name={e.name} size={32} />
               <div>
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">{e.name}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{e.user_count} usuários</p>

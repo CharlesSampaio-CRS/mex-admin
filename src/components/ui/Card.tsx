@@ -10,7 +10,7 @@ interface CardProps {
 export function Card({ children, className, accent }: CardProps) {
   return (
     <div className={cn(
-      'rounded-2xl border bg-white dark:bg-surface border-gray-200 dark:border-white/8 overflow-hidden',
+      'rounded-xl border bg-card border-border overflow-hidden',
       className
     )}>
       {accent && (
@@ -23,12 +23,12 @@ export function Card({ children, className, accent }: CardProps) {
 
 export function CardHeader({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn('px-6 py-4 border-b border-gray-200 dark:border-white/8', className)}>
+    <div className={cn('px-5 py-4 border-b border-border', className)}>
       {children}
     </div>
   )
 }
 
 export function CardBody({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn('p-6', className)}>{children}</div>
+  return <div className={cn('p-5', className)}>{children}</div>
 }

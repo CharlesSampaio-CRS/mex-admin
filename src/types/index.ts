@@ -13,7 +13,11 @@ export interface AdminUser {
   last_login_at?:       string
   expo_push_token?:     string
   exchange_count:       number
+  exchanges:            string[]
   is_verified:          boolean
+  avatar?:              string
+  is_active?:           boolean
+  open_tickets?:        number
 }
 
 export interface ExchangeStats {
@@ -96,5 +100,35 @@ export interface CostItem {
   category:    string
   monthly_usd: number
   description: string
+}
+
+export interface CatalogExchange {
+  id:       string
+  ccxt_id:  string
+  name:     string
+  logo_url?: string
+  url?:     string
+  pais_de_origem?: string
+  is_active: boolean
+  supports_spot?: boolean
+  supports_futures?: boolean
+  requires_passphrase?: boolean
+  passphrase_label?: string
+  passphrase_placeholder?: string
+  requires_uid?: boolean
+  uid_label?: string
+  uid_placeholder?: string
+  api_key_expiry_days?: number
+}
+
+export interface JobExecution {
+  id:           string
+  job_name:     string
+  status:       'running' | 'success' | 'error'
+  started_at:   number   // unix ms
+  finished_at?: number
+  duration_ms?: number
+  triggered_by: string
+  error_msg?:   string
 }
 

@@ -21,9 +21,9 @@ function StatCard({ icon, label, value, sub, color }: {
           <IonIcon name={icon} size={18} />
         </div>
         <div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">{label}</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
-          {sub && <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{sub}</p>}
+          <p className="text-xs text-muted-fore mb-0.5">{label}</p>
+          <p className="text-2xl font-bold text-foreground">{value}</p>
+          {sub && <p className="text-xs text-muted-fore mt-0.5">{sub}</p>}
         </div>
       </CardBody>
     </Card>
@@ -58,13 +58,7 @@ export function DashboardPage() {
   ]
 
   return (
-    <div className="space-y-6 max-w-7xl">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Visão geral do MEX em tempo real</p>
-      </div>
-
+    <div className="space-y-6 overflow-y-auto flex-1 min-h-0">
       {/* Stats grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon="people-outline"          label="Total usuários"  value={stats.total_users}   sub={`+${stats.new_users_7d} últimos 7d`}  color="bg-blue-500/10 text-blue-500" />
@@ -77,7 +71,7 @@ export function DashboardPage() {
         {/* Planos breakdown */}
         <Card accent>
           <CardBody>
-            <p className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Distribuição de planos</p>
+            <p className="text-sm font-semibold text-foreground mb-4">Distribuição de planos</p>
             <div className="flex items-center gap-4">
               <ResponsiveContainer width={100} height={100}>
                 <PieChart>
@@ -91,10 +85,10 @@ export function DashboardPage() {
                   <div key={d.name} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full" style={{ background: d.color }} />
-                      <span className="text-xs text-gray-600 dark:text-gray-400">{d.name}</span>
+                      <span className="text-xs text-muted-fore">{d.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-gray-900 dark:text-white">{d.value}</span>
+                      <span className="text-xs font-semibold text-foreground">{d.value}</span>
                       <Badge className={planColor(d.name.toLowerCase())}>{planLabel(d.name.toLowerCase())}</Badge>
                     </div>
                   </div>
@@ -107,7 +101,7 @@ export function DashboardPage() {
         {/* Quick stats */}
         <Card accent className="lg:col-span-2">
           <CardBody>
-            <p className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Visão geral</p>
+            <p className="text-sm font-semibold text-foreground mb-4">Visão geral</p>
             <div className="grid grid-cols-2 gap-3">
               {[
                 { icon: 'trending-up-outline',     label: 'Novos (7d)',      value: stats.new_users_7d,                    color: 'text-blue-400' },
@@ -117,11 +111,11 @@ export function DashboardPage() {
                 { icon: 'checkmark-circle-outline',label: 'Verificados',     value: stats.verified_users ?? 0,             color: 'text-green-400' },
                 { icon: 'lock-closed-outline',     label: 'Com 2FA',         value: stats.totp_users ?? 0,                 color: 'text-amber-400' },
               ].map(({ icon, label, value, color }) => (
-                <div key={label} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/3">
+                <div key={label} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 bg-muted">
                   <IonIcon name={icon} size={16} className={color} />
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
-                    <p className="text-lg font-bold text-gray-900 dark:text-white">{value}</p>
+                    <p className="text-xs text-muted-fore">{label}</p>
+                    <p className="text-lg font-bold text-foreground">{value}</p>
                   </div>
                 </div>
               ))}
@@ -134,17 +128,17 @@ export function DashboardPage() {
       {stats.jobs?.length > 0 && (
         <Card accent>
           <CardBody>
-            <p className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Status dos Jobs</p>
+            <p className="text-sm font-semibold text-foreground mb-4">Status dos Jobs</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {stats.jobs.map(job => (
-                <div key={job.job_id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/3">
+                <div key={job.job_id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 bg-muted">
                   <div className={`w-2 h-2 rounded-full shrink-0 ${
                     job.status === 'success' ? 'bg-emerald-400' :
                     job.status === 'running' ? 'bg-blue-400 animate-pulse' :
                     job.status === 'error'   ? 'bg-red-400' : 'bg-gray-400'
                   }`} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-gray-900 dark:text-white truncate">{job.name}</p>
+                    <p className="text-xs font-medium text-foreground truncate">{job.name}</p>
                     <p className="text-xs text-gray-400">{job.runs_today}x hoje</p>
                   </div>
                   <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${

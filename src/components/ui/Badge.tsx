@@ -5,11 +5,11 @@ type BadgeVariant = 'default' | 'success' | 'danger' | 'warning' | 'info'
 type BadgeSize = 'sm' | 'md'
 
 const VARIANT_CLASSES: Record<BadgeVariant, string> = {
-  default: 'bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-white/10',
-  success: 'bg-green-500/10 text-green-500 border-green-500/20',
-  danger:  'bg-red-500/10 text-red-400 border-red-500/20',
-  warning: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-  info:    'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  default: 'bg-muted text-muted-fore border-border',
+  success: 'bg-success/10 text-success border-success/20',
+  danger:  'bg-destructive/10 text-destructive border-destructive/20',
+  warning: 'bg-warning/10 text-warning border-warning/20',
+  info:    'bg-primary/10 text-primary border-primary/20',
 }
 
 interface BadgeProps {

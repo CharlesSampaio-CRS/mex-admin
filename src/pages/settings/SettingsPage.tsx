@@ -17,8 +17,8 @@ function Section({ icon, title, description, children }: {
             <IonIcon name={icon} size={16} className="text-primary" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900 dark:text-white">{title}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>
+            <p className="text-sm font-semibold text-foreground">{title}</p>
+            <p className="text-xs text-muted-fore">{description}</p>
           </div>
         </div>
       </CardHeader>
@@ -33,8 +33,8 @@ function Toggle({ checked, onChange, label, description }: {
   return (
     <div className="flex items-center justify-between gap-4 py-3 border-b border-gray-100 dark:border-white/5 last:border-0">
       <div>
-        <p className="text-sm font-medium text-gray-900 dark:text-white">{label}</p>
-        {description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{description}</p>}
+        <p className="text-sm font-medium text-foreground">{label}</p>
+        {description && <p className="text-xs text-muted-fore mt-0.5">{description}</p>}
       </div>
       <button
         onClick={() => onChange(!checked)}
@@ -72,13 +72,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Configurações</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Preferências e segurança do painel admin</p>
-      </div>
-
+    <div className="space-y-6 overflow-y-auto flex-1 min-h-0">
       {/* Perfil */}
       <Section icon="person-outline" title="Perfil" description="Informações da conta logada">
         <div className="flex items-center gap-4">
@@ -86,8 +80,8 @@ export function SettingsPage() {
             {user?.name?.charAt(0) ?? 'A'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-900 dark:text-white truncate">{user?.name || 'Admin'}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+            <p className="font-semibold text-foreground truncate">{user?.name || 'Admin'}</p>
+            <p className="text-sm text-muted-fore truncate">{user?.email}</p>
             <div className="flex gap-1 mt-1.5 flex-wrap">
               {user?.roles?.map(r => (
                 <span key={r} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{r}</span>
@@ -118,14 +112,14 @@ export function SettingsPage() {
       <Section icon="shield-checkmark-outline" title="Segurança" description="Dispositivo e sessão atual">
         <div className="space-y-4">
           <div>
-            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Device ID</p>
+            <p className="text-xs font-medium text-muted-fore mb-1.5">Device ID</p>
             <div className="flex items-center gap-2">
-              <code className="flex-1 text-xs bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-gray-700 dark:text-gray-300 truncate font-mono">
+              <code className="flex-1 text-xs bg-muted border border-border rounded-xl px-3 py-2.5 text-gray-700 text-muted-fore truncate font-mono">
                 {deviceId}
               </code>
               <button
                 onClick={copyDeviceId}
-                className="shrink-0 w-9 h-9 flex items-center justify-center rounded-xl border border-gray-200 dark:border-white/10 text-gray-500 hover:text-primary hover:border-primary/30 transition-colors"
+                className="shrink-0 w-9 h-9 flex items-center justify-center rounded-xl border border-border text-gray-500 hover:text-primary hover:border-primary/30 transition-colors"
               >
                 <IonIcon name={copied ? 'checkmark-outline' : 'copy-outline'} size={15} />
               </button>
@@ -152,8 +146,8 @@ export function SettingsPage() {
             { label: 'Ambiente', value: (import.meta as unknown as { env: { MODE: string } }).env.MODE === 'production' ? 'Produção' : 'Desenvolvimento' },
           ].map(({ label, value }) => (
             <div key={label} className="flex justify-between items-center py-1.5 border-b border-gray-100 dark:border-white/5 last:border-0">
-              <span className="text-gray-500 dark:text-gray-400">{label}</span>
-              <span className="font-medium text-gray-900 dark:text-white">{value}</span>
+              <span className="text-muted-fore">{label}</span>
+              <span className="font-medium text-foreground">{value}</span>
             </div>
           ))}
         </div>

@@ -3,16 +3,75 @@
 @tailwind utilities;
 
 @layer base {
+  /* ── Light mode ── */
   :root {
-    --scrollbar-bg: #0f1623;
-    --scrollbar-thumb: #1a2d4a;
+    --background:    0 0% 96%;       /* #f5f5f5 */
+    --foreground:    220 13% 18%;    /* #252d3d */
+
+    --card:          0 0% 100%;
+    --sidebar:       0 0% 100%;
+    --header:        0 0% 100%;
+
+    --muted:         220 14% 94%;
+    --muted-fore:    220 9% 46%;
+
+    --border:        220 13% 88%;
+    --input:         220 13% 88%;
+
+    --primary:       220 89% 54%;    /* #1a6ff7 */
+    --primary-fore:  0 0% 100%;
+
+    --accent:        43 95% 52%;     /* #f5c518 */
+    --accent-fore:   0 0% 10%;
+
+    --destructive:   0 78% 56%;
+    --success:       145 63% 38%;
+    --warning:       38 90% 52%;
+
+    --radius: 0.625rem;
+    --scrollbar-bg:    hsl(var(--background));
+    --scrollbar-thumb: hsl(var(--border));
   }
+
+  /* ── Dark mode — neutro, clean, legível ── */
+  .dark {
+    --background:    220 16% 12%;    /* #181c27 */
+    --foreground:    220 14% 90%;    /* #e2e4ec */
+
+    --card:          220 16% 16%;    /* #1f2433 */
+    --sidebar:       220 16% 14%;    /* #1b2030 */
+    --header:        220 16% 13%;    /* #191d2c */
+
+    --muted:         220 14% 20%;    /* #282f3f */
+    --muted-fore:    220 10% 56%;    /* #818899 */
+
+    --border:        220 14% 23%;    /* #2e3547 */
+    --input:         220 14% 20%;
+
+    --primary:       220 89% 62%;    /* azul um pouco mais claro no dark */
+    --primary-fore:  0 0% 100%;
+
+    --accent:        43 90% 54%;
+    --accent-fore:   0 0% 10%;
+
+    --destructive:   0 70% 58%;
+    --success:       145 58% 44%;
+    --warning:       38 88% 54%;
+
+    --scrollbar-bg:    hsl(var(--background));
+    --scrollbar-thumb: hsl(var(--border));
+  }
+
   * { box-sizing: border-box; }
   html { -webkit-font-smoothing: antialiased; }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
 
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track { background: var(--scrollbar-bg); }
-  ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
 }
 
 @layer utilities {

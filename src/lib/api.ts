@@ -101,6 +101,21 @@ export async function apiUpdateUserPlan(userId: string, plan: string) {
   })
 }
 
+export async function apiPatchUser(userId: string, data: { name?: string; email?: string; roles?: string[]; is_active?: boolean; email_verified?: boolean }) {
+  return request<{ success: boolean }>(`/admin/users/${userId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function apiBlockUser(userId: string) {
+  return request<{ success: boolean }>(`/admin/users/${userId}/block`, { method: 'POST' })
+}
+
+export async function apiUnblockUser(userId: string) {
+  return request<{ success: boolean }>(`/admin/users/${userId}/unblock`, { method: 'POST' })
+}
+
 // ── Admin: Support ────────────────────────────────────────────────────────────
 export async function apiAdminListTickets(status = '') {
   const q = new URLSearchParams(status ? { status } : {})
@@ -130,11 +145,76 @@ export async function apiAdminExchangeStats() {
   return request<{ success: boolean; exchanges: import('@/types').ExchangeStats[] }>('/admin/exchanges')
 }
 
+export async function apiAdminAllExchanges() {
+  return request<{ success: boolean; exchanges: import('@/types').CatalogExchange[] }>('/exchanges/available')
+}
+
+export async function apiAdminExchangesCatalog() {
+  return request<{ success: boolean; exchanges: import('@/types').CatalogExchange[] }>('/admin/exchanges/catalog')
+}
+
+export interface ExchangeCatalogInput {
+  name: string
+  ccxt_id: string
+  logo_url?: string
+  url?: string
+  pais_de_origem?: string
+  is_active?: boolean
+  supports_spot?: boolean
+  supports_futures?: boolean
+  requires_passphrase?: boolean
+  passphrase_label?: string
+  passphrase_placeholder?: string
+  requires_uid?: boolean
+  uid_label?: string
+  uid_placeholder?: string
+  api_key_expiry_days?: number
+}
+
+export async function apiAdminCreateExchange(data: ExchangeCatalogInput) {
+  return request<{ success: boolean; id: string }>('/admin/exchanges/catalog', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function apiAdminUpdateExchange(id: string, data: ExchangeCatalogInput) {
+  return request<{ success: boolean }>(`/admin/exchanges/catalog/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function apiAdminToggleExchange(id: string) {
+  return request<{ success: boolean; is_active: boolean }>(`/admin/exchanges/catalog/${id}/toggle`, {
+    method: 'PATCH',
+  })
+}
+
+export async function apiAdminDeleteExchange(id: string) {
+  return request<{ success: boolean }>(`/admin/exchanges/catalog/${id}`, {
+    method: 'DELETE',
+  })
+}
+
 // ── Admin: Jobs ───────────────────────────────────────────────────────────────
 export async function apiAdminJobs() {
   return request<{ success: boolean; jobs: import('@/types').JobStatus[] }>('/admin/jobs')
 }
 
 export async function apiAdminTriggerJob(name: string) {
-  return request<{ success: boolean }>(`/admin/jobs/${name}/trigger`, { method: 'POST' })
+  return request<{ success: boolean }>(`/admin/jobs/${name}/run`, { method: 'POST' })
+}
+
+export async function apiAdminJobExecutions(jobName?: string) {
+  const path = jobName ? `/admin/jobs/${jobName}/executions` : '/admin/jobs/executions'
+  return request<{ success: boolean; executions: import('@/types').JobExecution[]; total: number }>(path)
+}
+
+// ── Admin: Push ───────────────────────────────────────────────────────────────
+export async function apiAdminSendPush(payload: { title: string; body: string; userIds?: string[]; plan?: string }) {
+  return request<{ success: boolean; sent: number; failed: number }>('/admin/push/send', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
 }

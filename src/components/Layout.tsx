@@ -7,13 +7,13 @@ import { IonIcon } from '@/components/ui/IonIcon'
 import type { ReactNode } from 'react'
 
 const NAV = [
-  { to: '/',          icon: 'grid-outline',            label: 'Dashboard',    end: true },
-  { to: '/users',     icon: 'people-outline',          label: 'Usuários'               },
-  { to: '/support',   icon: 'headset-outline',         label: 'Suporte'                },
-  { to: '/exchanges', icon: 'swap-horizontal-outline', label: 'Exchanges'              },
-  { to: '/jobs',      icon: 'hardware-chip-outline',   label: 'Jobs'                   },
-  { to: '/costs',     icon: 'cash-outline',            label: 'Custos'                 },
-  { to: '/settings',  icon: 'settings-outline',        label: 'Configurações'          },
+  { to: '/',           icon: 'grid-outline',            label: 'Dashboard',    end: true },
+  { to: '/users',      icon: 'people-outline',          label: 'Usuários'               },
+  { to: '/support',    icon: 'headset-outline',         label: 'Suporte'                },
+  { to: '/exchanges',  icon: 'swap-horizontal-outline', label: 'Exchanges'              },
+  { to: '/jobs',       icon: 'hardware-chip-outline',   label: 'Jobs'                   },
+  { to: '/costs',      icon: 'cash-outline',            label: 'Custos'                 },
+  { to: '/settings',   icon: 'settings-outline',        label: 'Configurações'          },
 ]
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -48,11 +48,11 @@ export function Layout({ children }: { children: ReactNode }) {
               title="Expandir menu"
               onClick={() => setCollapsed(false)}
             >
-              <img src="icons/icon.png" alt="MEX" className="w-7 h-7 rounded-md object-cover" />
+              <img src="/admin/icons/icon.png" alt="MEX" className="w-7 h-7 rounded-md object-cover" />
             </button>
           ) : (
             <>
-              <img src="icons/icon.png" alt="MEX" className="w-7 h-7 rounded-md object-cover shrink-0" />
+              <img src="/admin/icons/icon.png" alt="MEX" className="w-7 h-7 rounded-md object-cover shrink-0" />
               <span className="font-semibold text-sm whitespace-nowrap flex-1">
                 MEX <span className="text-primary">Admin</span>
               </span>
@@ -89,6 +89,23 @@ export function Layout({ children }: { children: ReactNode }) {
               {!collapsed && <span className="flex-1 whitespace-nowrap">{label}</span>}
             </NavLink>
           ))}
+
+          {/* Ferramentas */}
+          <NavLink
+            to="/webviews"
+            onClick={() => setOpen(false)}
+            title={collapsed ? 'Ferramentas' : undefined}
+            className={({ isActive }) => cn(
+              'flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-colors',
+              collapsed && 'justify-center',
+              isActive
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-fore hover:text-foreground hover:bg-muted'
+            )}
+          >
+            <IonIcon name="construct-outline" size={15} className="shrink-0" />
+            {!collapsed && <span className="flex-1 whitespace-nowrap">Ferramentas</span>}
+          </NavLink>
         </nav>
 
         {/* User footer */}
@@ -140,7 +157,7 @@ export function Layout({ children }: { children: ReactNode }) {
         </header>
 
         {/* Content */}
-        <main className="flex-1 flex flex-col overflow-hidden p-4 lg:p-6 min-h-0">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6 min-h-0">
           {children}
         </main>
       </div>

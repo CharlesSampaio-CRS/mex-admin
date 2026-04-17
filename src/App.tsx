@@ -9,6 +9,7 @@ import { ExchangesPage } from '@/pages/exchanges/ExchangesPage'
 import { JobsPage } from '@/pages/jobs/JobsPage'
 import { CostsPage } from '@/pages/costs/CostsPage'
 import { SettingsPage } from '@/pages/settings/SettingsPage'
+import { WebViewsPage } from '@/pages/webviews/WebViewsPage'
 
 function RequireAdmin({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isAdmin } = useAuth()
@@ -34,6 +35,7 @@ export default function App() {
                   <Route path="exchanges" element={<ExchangesPage />} />
                   <Route path="jobs" element={<JobsPage />} />
                   <Route path="costs" element={<CostsPage />} />
+                  <Route path="webviews" element={<WebViewsPage />} />
                   <Route path="settings" element={<SettingsPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>

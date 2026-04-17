@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    --scrollbar-bg: #1a1a24;
-    --scrollbar-thumb: #2e2e3e;
+    --scrollbar-bg: #0f1623;
+    --scrollbar-thumb: #1a2d4a;
   }
   * { box-sizing: border-box; }
   html { -webkit-font-smoothing: antialiased; }

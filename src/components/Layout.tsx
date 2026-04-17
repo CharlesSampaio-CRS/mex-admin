@@ -25,7 +25,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const handleLogout = () => { logout(); navigate('/admin/login') }
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-[#0f0f14] text-gray-900 dark:text-white overflow-hidden">
+    <div className="flex h-screen bg-gray-50 dark:bg-[#0b1120] text-gray-900 dark:text-white overflow-hidden">
 
       {/* ── Overlay mobile ── */}
       {open && (
@@ -34,7 +34,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
       {/* ── Sidebar ── */}
       <aside className={cn(
-        'fixed inset-y-0 left-0 z-30 flex flex-col w-64 bg-white dark:bg-[#1a1a24] border-r border-gray-200 dark:border-white/8 transition-transform duration-200 lg:translate-x-0 lg:static lg:z-auto',
+        'fixed inset-y-0 left-0 z-30 flex flex-col w-64 bg-white dark:bg-[#0f1e35] border-r border-gray-200 dark:border-white/8 transition-transform duration-200 lg:translate-x-0 lg:static lg:z-auto',
         open ? 'translate-x-0' : '-translate-x-full'
       )}>
         {/* Logo */}
@@ -86,7 +86,7 @@ export function Layout({ children }: { children: ReactNode }) {
       {/* ── Main ── */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Topbar */}
-        <header className="flex items-center gap-4 px-4 lg:px-6 h-16 border-b border-gray-200 dark:border-white/8 bg-white dark:bg-[#1a1a24] shrink-0">
+        <header className="flex items-center gap-4 px-4 lg:px-6 h-16 border-b border-gray-200 dark:border-white/8 bg-white dark:bg-[#0f1e35] shrink-0">
           <button className="lg:hidden text-gray-500 hover:text-gray-900 dark:hover:text-white" onClick={() => setOpen(true)}>
             <IonIcon name="menu-outline" size={22} />
           </button>

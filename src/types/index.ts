@@ -16,17 +16,52 @@ export interface AdminUser {
   is_verified:          boolean
 }
 
+export interface ExchangeStats {
+  exchange_id:   string
+  name:          string
+  user_count:    number
+  active_count:  number
+}
+
+export interface JobStatus {
+  job_id:      string
+  name:        string
+  status:      'running' | 'idle' | 'error' | 'success'
+  last_run:    string | null
+  next_run:    string | null
+  runs_today:  number
+  last_error?: string
+  error?:      string
+}
+
 export interface DashboardStats {
-  total_users:      number
-  free_users:       number
-  pro_users:        number
-  premium_users:    number
-  total_tickets:    number
-  open_tickets:     number
-  mrr_estimate:     number
-  active_exchanges: number
-  new_users_7d:     number
-  new_users_30d:    number
+  // Usuários
+  total_users:       number
+  active_users:      number
+  blocked_users:     number
+  verified_users:    number
+  totp_users:        number
+  new_users_7d:      number
+  new_users_30d:     number
+  // Planos
+  free_users:        number
+  pro_users:         number
+  premium_users:     number
+  // MRR
+  mrr_estimate:      number
+  // Suporte
+  total_tickets:     number
+  open_tickets:      number
+  in_progress_tickets: number
+  resolved_tickets:  number
+  // Exchanges
+  active_exchanges:  number
+  exchanges:         ExchangeStats[]
+  // Estratégias
+  total_strategies:  number
+  active_strategies: number
+  // Jobs
+  jobs:              JobStatus[]
 }
 
 export interface SupportTicket {
@@ -56,17 +91,6 @@ export interface TicketComment {
   created_at: number
 }
 
-export interface JobStatus {
-  job_id:       string
-  name:         string
-  status:       'running' | 'idle' | 'error' | 'success'
-  last_run:     string | null
-  next_run:     string | null
-  runs_today:   number
-  last_error?:  string
-  error?:       string
-}
-
 export interface CostItem {
   name:        string
   category:    string
@@ -74,9 +98,3 @@ export interface CostItem {
   description: string
 }
 
-export interface ExchangeStats {
-  exchange_id:  string
-  name:         string
-  user_count:   number
-  active_count: number
-}

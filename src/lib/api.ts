@@ -1,5 +1,25 @@
 const BASE = '/api/v1'
 
+export class ApiError extends Error {
+  constructor(public code: string, message: string) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
+
+function getOrCreateDeviceId(): string {
+  let id = localStorage.getItem('mex_admin_device_id')
+  if (!id) {
+    id = crypto.randomUUID()
+    localStorage.setItem('mex_admin_device_id', id)
+  }
+  return id
+}
+
+export function getDeviceId(): string {
+  return getOrCreateDeviceId()
+}
+
 function getToken(): string | null {
   return localStorage.getItem('mex_admin_token')
 }
@@ -30,19 +50,33 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
 
   const data = await res.json()
-  if (!res.ok) throw new Error(data?.error ?? `HTTP ${res.status}`)
+
+  // Trata erro mesmo quando status é 200 mas success=false
+  if (!res.ok || data?.success === false) {
+    throw new ApiError(data?.error ?? `HTTP_${res.status}`, data?.message ?? data?.error ?? `HTTP ${res.status}`)
+  }
   return data as T
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 export async function apiLogin(email: string, password: string) {
-  const data = await request<{ token: string; user: { roles: string[] } }>('/auth/login', {
+  const data = await request<{ token: string; user?: { roles?: string[] } }>('/admin/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, device_id: getDeviceId() }),
   })
-  if (!data.user.roles.includes('admin')) throw new Error('Acesso negado — conta sem permissão admin')
+
+  // Extrai roles do payload JWT caso a API não retorne user.roles
+  let roles: string[] = data.user?.roles ?? []
+  if (!roles.length && data.token) {
+    try {
+      const payload = JSON.parse(atob(data.token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
+      roles = payload.roles ?? payload.role ?? payload.permissions ?? []
+    } catch { /* ignora */ }
+  }
+
+  if (!roles.includes('admin')) throw new Error('Acesso negado — conta sem permissão admin')
   setToken(data.token)
-  return data
+  return { token: data.token, user: { roles } }
 }
 
 // ── Admin: Dashboard ──────────────────────────────────────────────────────────

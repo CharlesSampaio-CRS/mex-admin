@@ -70,7 +70,7 @@ export function DashboardPage() {
         <StatCard icon="people-outline"          label="Total usuários"  value={stats.total_users}   sub={`+${stats.new_users_7d} últimos 7d`}  color="bg-blue-500/10 text-blue-500" />
         <StatCard icon="ribbon-outline"           label="Premium"         value={stats.premium_users} sub={`${stats.pro_users} Pro`}              color="bg-amber-500/10 text-amber-500" />
         <StatCard icon="cash-outline"             label="MRR estimado"    value={formatCurrency(stats.mrr_estimate)} sub="mensal"                color="bg-emerald-500/10 text-emerald-500" />
-        <StatCard icon="ticket-outline"           label="Tickets abertos" value={stats.open_tickets}  sub={`${stats.total_tickets} total`}        color="bg-purple-500/10 text-purple-500" />
+        <StatCard icon="ticket-outline"           label="Tickets abertos" value={stats.open_tickets}  sub={`${stats.in_progress_tickets ?? 0} em andamento`} color="bg-purple-500/10 text-purple-500" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -107,13 +107,15 @@ export function DashboardPage() {
         {/* Quick stats */}
         <Card accent className="lg:col-span-2">
           <CardBody>
-            <p className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Crescimento</p>
-            <div className="grid grid-cols-2 gap-4">
+            <p className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Visão geral</p>
+            <div className="grid grid-cols-2 gap-3">
               {[
-                { icon: 'trending-up-outline',     label: 'Novos (7d)',  value: stats.new_users_7d,     color: 'text-blue-400' },
-                { icon: 'person-add-outline',      label: 'Novos (30d)', value: stats.new_users_30d,    color: 'text-emerald-400' },
-                { icon: 'swap-horizontal-outline', label: 'Exchanges',   value: stats.active_exchanges, color: 'text-purple-400' },
-                { icon: 'flame-outline',           label: 'Tickets',     value: stats.total_tickets,    color: 'text-amber-400' },
+                { icon: 'trending-up-outline',     label: 'Novos (7d)',      value: stats.new_users_7d,                    color: 'text-blue-400' },
+                { icon: 'person-add-outline',      label: 'Novos (30d)',     value: stats.new_users_30d,                   color: 'text-emerald-400' },
+                { icon: 'swap-horizontal-outline', label: 'Exchanges ativas',value: stats.active_exchanges,                color: 'text-purple-400' },
+                { icon: 'git-branch-outline',      label: 'Estratégias',     value: `${stats.active_strategies ?? 0}/${stats.total_strategies ?? 0}`, color: 'text-cyan-400' },
+                { icon: 'checkmark-circle-outline',label: 'Verificados',     value: stats.verified_users ?? 0,             color: 'text-green-400' },
+                { icon: 'lock-closed-outline',     label: 'Com 2FA',         value: stats.totp_users ?? 0,                 color: 'text-amber-400' },
               ].map(({ icon, label, value, color }) => (
                 <div key={label} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/3">
                   <IonIcon name={icon} size={16} className={color} />
@@ -127,6 +129,35 @@ export function DashboardPage() {
           </CardBody>
         </Card>
       </div>
+
+      {/* Jobs status */}
+      {stats.jobs?.length > 0 && (
+        <Card accent>
+          <CardBody>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Status dos Jobs</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {stats.jobs.map(job => (
+                <div key={job.job_id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/3">
+                  <div className={`w-2 h-2 rounded-full shrink-0 ${
+                    job.status === 'success' ? 'bg-emerald-400' :
+                    job.status === 'running' ? 'bg-blue-400 animate-pulse' :
+                    job.status === 'error'   ? 'bg-red-400' : 'bg-gray-400'
+                  }`} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-gray-900 dark:text-white truncate">{job.name}</p>
+                    <p className="text-xs text-gray-400">{job.runs_today}x hoje</p>
+                  </div>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                    job.status === 'success' ? 'bg-emerald-500/10 text-emerald-400' :
+                    job.status === 'running' ? 'bg-blue-500/10 text-blue-400' :
+                    job.status === 'error'   ? 'bg-red-500/10 text-red-400' : 'bg-gray-500/10 text-gray-400'
+                  }`}>{job.status}</span>
+                </div>
+              ))}
+            </div>
+          </CardBody>
+        </Card>
+      )}
     </div>
   )
 }

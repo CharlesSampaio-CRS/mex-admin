@@ -3,10 +3,11 @@ export interface Tool {
   label:           string
   url:             string
   icon:            string
+  imgIcon?:        string    // caminho para imagem (sobrescreve icon)
   color:           string
   category:        string
-  noEmbed?:        boolean   // bloqueia iframe (X-Frame-Options / CSP)
-  monthlyCostUSD?: number    // custo mensal em USD (0 = gratuito, undefined = não monitorado)
+  noEmbed?:        boolean
+  monthlyCostUSD?: number
 }
 
 export const TOOLS: Tool[] = [
@@ -30,6 +31,6 @@ export const TOOLS: Tool[] = [
   { id: 'revenuecat', label: 'RevenueCat',         url: 'https://app.revenuecat.com',                        icon: 'card-outline',            color: '#a855f7', category: 'Stores',   noEmbed: true,  monthlyCostUSD: 0    },
 
   // Site & Ferramentas
-  { id: 'site',       label: 'mex.app.br',         url: 'https://mex.app.br',                                icon: 'earth-outline',           color: '#06b6d4', category: 'Site',                     monthlyCostUSD: 0    },
+  { id: 'site',       label: 'mex.app.br',         url: 'https://mex.app.br',                                icon: 'earth-outline',           imgIcon: '/admin/icons/icon.png',  color: '#06b6d4', category: 'Site',                     monthlyCostUSD: 0    },
   { id: 'conversor',  label: 'USD → BRL',          url: 'https://www.google.com/search?q=dolar+hoje',        icon: 'swap-horizontal-outline', color: '#22d3ee', category: 'Site',     noEmbed: true,  monthlyCostUSD: 0    },
 ]

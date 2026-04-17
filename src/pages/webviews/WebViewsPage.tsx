@@ -22,7 +22,10 @@ export function WebViewsPage() {
                   className="w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110"
                   style={{ backgroundColor: `${tool.color}18`, border: `1.5px solid ${tool.color}35` }}
                 >
-                  <IonIcon name={tool.icon as any} size={28} style={{ color: tool.color }} />
+                  {tool.imgIcon
+                    ? <img src={tool.imgIcon} alt={tool.label} className="w-9 h-9 rounded-xl object-cover" />
+                    : <IonIcon name={tool.icon as any} size={28} style={{ color: tool.color }} />
+                  }
                 </div>
                 <div className="text-center">
                   <p className="text-xs font-semibold text-foreground leading-tight">{tool.label}</p>

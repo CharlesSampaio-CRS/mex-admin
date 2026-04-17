@@ -35,9 +35,22 @@ export function CostsPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const res  = await fetch(`${API}/costs`, { headers })
-    const json = await res.json()
-    if (json.success) setCosts(json.data)
+    try {
+      const res  = await fetch(`${API}/costs`, { headers })
+      const json = await res.json()
+      if (json.success) setCosts(json.data)
+    } catch {
+      // backend ainda não deployado — usa dados locais do tools.ts
+      setCosts(TOOLS.map(t => ({
+        _id:              t.id,
+        service_id:       t.id,
+        label:            t.label,
+        category:         t.category,
+        is_paid:          (t.monthlyCostUSD ?? 0) > 0,
+        monthly_cost_usd: t.monthlyCostUSD ?? 0,
+        updated_at:       '',
+      })))
+    }
     setLoading(false)
   }, [token])
 
@@ -56,12 +69,18 @@ export function CostsPage() {
 
   const save = async (cost: ServiceCost, is_paid: boolean, monthly_cost_usd: number) => {
     setSaving(cost._id)
-    await fetch(`${API}/costs/${cost._id}`, {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify({ is_paid, monthly_cost_usd }),
-    })
-    await load()
+    // Atualiza localmente de imediato (optimistic)
+    setCosts(prev => prev.map(c => c._id === cost._id ? { ...c, is_paid, monthly_cost_usd } : c))
+    try {
+      await fetch(`${API}/costs/${cost._id}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ is_paid, monthly_cost_usd }),
+      })
+      await load()
+    } catch {
+      // backend offline — mantém o estado local
+    }
     setSaving(null)
   }
 

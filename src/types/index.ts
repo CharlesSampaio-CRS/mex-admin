@@ -84,15 +84,17 @@ export interface SupportTicket {
   sla_hours:     number
   sla_deadline:  number
   admin_reply?:  string
+  attachments?:  string[]
   comments?:     TicketComment[]
 }
 
 export interface TicketComment {
-  id:         string
-  text:       string
-  author:     string
-  is_admin:   boolean
-  created_at: number
+  id:           string
+  text:         string
+  author:       string
+  is_admin:     boolean
+  created_at:   number
+  attachments?: string[]
 }
 
 export interface CostItem {

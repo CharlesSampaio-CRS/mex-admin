@@ -126,10 +126,10 @@ export async function apiAdminGetTicket(id: string) {
   return request<{ success: boolean; ticket: import('@/types').SupportTicket }>(`/support/admin/tickets/${id}`)
 }
 
-export async function apiAdminReplyTicket(id: string, text: string) {
+export async function apiAdminReplyTicket(id: string, text: string, attachments?: string[]) {
   return request<{ success: boolean; ticket: import('@/types').SupportTicket }>(`/support/admin/tickets/${id}/comments`, {
     method: 'POST',
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text, ...(attachments?.length ? { attachments } : {}) }),
   })
 }
 

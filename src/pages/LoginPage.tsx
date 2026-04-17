@@ -9,12 +9,13 @@ export function LoginPage() {
   const { login } = useAuth()
   const navigate  = useNavigate()
 
-  const [email,     setEmail]     = useState(() => localStorage.getItem('mex_admin_saved_email') ?? '')
-  const [password,  setPassword]  = useState('')
-  const [showPw,    setShowPw]    = useState(false)
-  const [loading,   setLoading]   = useState(false)
-  const [error,     setError]     = useState('')
-  const [saveEmail, setSaveEmail] = useState(() => !!localStorage.getItem('mex_admin_saved_email'))
+  const [email,        setEmail]        = useState(() => localStorage.getItem('mex_admin_saved_email') ?? '')
+  const [password,     setPassword]     = useState('')
+  const [showPw,       setShowPw]       = useState(false)
+  const [loading,      setLoading]      = useState(false)
+  const [error,        setError]        = useState('')
+  const [saveEmail,    setSaveEmail]    = useState(() => !!localStorage.getItem('mex_admin_saved_email'))
+  const [accessDenied, setAccessDenied] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,7 +28,12 @@ export function LoginPage() {
       login(data.token, { email: email.trim(), name: email.trim(), roles: data.user.roles })
       navigate('/')
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erro ao entrar')
+      const msg = err instanceof Error ? err.message : 'Erro ao entrar'
+      if (msg.toLowerCase().includes('permissão') || msg.toLowerCase().includes('negado') || msg.toLowerCase().includes('acesso')) {
+        setAccessDenied(true)
+      } else {
+        setError(msg)
+      }
     } finally {
       setLoading(false)
     }
@@ -35,6 +41,44 @@ export function LoginPage() {
 
   return (
     <div className="dark min-h-screen flex items-center justify-center p-4 bg-background">
+
+      {/* ── Modal: Acesso Negado ─────────────────────────────────────────── */}
+      {accessDenied && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-sm bg-card border border-border rounded-2xl overflow-hidden shadow-2xl">
+            {/* Barra de atenção */}
+            <div className="h-[3px] bg-gradient-to-r from-amber-500 to-orange-500" />
+            <div className="p-8 flex flex-col items-center text-center gap-4">
+              {/* Ícone */}
+              <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                <IonIcon name="lock-closed-outline" size={32} className="text-amber-500" />
+              </div>
+              {/* Texto */}
+              <div>
+                <h2 className="text-lg font-bold text-foreground mb-1">Acesso restrito</h2>
+                <p className="text-sm text-muted-fore leading-relaxed">
+                  Sua conta MEX foi identificada, mas <strong className="text-foreground">não possui permissão de administrador</strong> para acessar este portal.
+                </p>
+              </div>
+              {/* Dica */}
+              <div className="w-full bg-muted rounded-xl border border-border px-4 py-3 flex items-start gap-3 text-left">
+                <IonIcon name="information-circle-outline" size={16} className="text-primary shrink-0 mt-0.5" />
+                <p className="text-xs text-muted-fore leading-relaxed">
+                  Se você acredita que isso é um engano, entre em contato com a equipe MEX para solicitar acesso administrativo.
+                </p>
+              </div>
+              {/* Botão */}
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={() => { setAccessDenied(false); setPassword('') }}
+              >
+                <IonIcon name="arrow-back-outline" size={15} /> Voltar ao login
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="w-full max-w-sm">
 
         {/* Logo */}

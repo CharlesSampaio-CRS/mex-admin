@@ -13,6 +13,7 @@ const NAV = [
   { to: '/exchanges',  icon: 'swap-horizontal-outline', label: 'Exchanges'              },
   { to: '/jobs',       icon: 'hardware-chip-outline',   label: 'Jobs'                   },
   { to: '/costs',      icon: 'cash-outline',            label: 'Custos'                 },
+  { to: '/security',   icon: 'shield-checkmark-outline', label: 'Segurança'             },
   { to: '/settings',   icon: 'settings-outline',        label: 'Configurações'          },
 ]
 

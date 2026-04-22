@@ -218,3 +218,40 @@ export async function apiAdminSendPush(payload: { title: string; body: string; u
     body: JSON.stringify(payload),
   })
 }
+
+// ── Admin: Security / Audit ──────────────────────────────────────────────────
+export interface SecurityEventItem {
+  _id?: { $oid: string } | string
+  event: string
+  user_id: string
+  severity: 'critical' | 'warning' | 'info'
+  details?: Record<string, unknown>
+  created_at: string | { $date: string | { $numberLong: string } }
+}
+
+export interface BackfillReport {
+  scanned_users: number
+  scanned_exchanges: number
+  backfilled: number
+  already_had_proof: number
+  decrypt_failures: number
+  update_failures: number
+}
+
+export async function apiAdminSecurityEvents(params: { user_id?: string; event?: string; limit?: number } = {}) {
+  const q = new URLSearchParams()
+  if (params.user_id) q.set('user_id', params.user_id)
+  if (params.event)   q.set('event', params.event)
+  if (params.limit)   q.set('limit', String(params.limit))
+  const qs = q.toString()
+  return request<{ success: boolean; count: number; events: SecurityEventItem[] }>(
+    `/admin/security/events${qs ? `?${qs}` : ''}`
+  )
+}
+
+export async function apiAdminBackfillOwnerProofs() {
+  return request<{ success: boolean; report: BackfillReport }>(
+    '/admin/security/backfill-owner-proofs',
+    { method: 'POST' }
+  )
+}

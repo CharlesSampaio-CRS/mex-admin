@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { apiDashboardStats } from '@/lib/api'
 import { formatCurrency, planColor, planLabel } from '@/lib/utils'
+import { cacheGet, cacheSet } from '@/lib/cache'
 import { Card, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { IonIcon } from '@/components/ui/IonIcon'
+import { SkeletonStatCard, SkeletonMiniCard, SkeletonChart } from '@/components/ui/Skeleton'
 import {
   ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts'
@@ -31,19 +33,34 @@ function StatCard({ icon, label, value, sub, color }: {
 }
 
 export function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [loading, setLoading] = useState(true)
+  // 🚀 Lê do cache ANTES de montar — no F5 o conteúdo aparece instantâneo (stale-while-revalidate).
+  const [stats, setStats] = useState<DashboardStats | null>(() => cacheGet<DashboardStats>('dashboard'))
+  const [loading, setLoading] = useState(!stats)
 
   useEffect(() => {
     apiDashboardStats()
-      .then(d => setStats(d.stats))
+      .then(d => {
+        setStats(d.stats)
+        cacheSet('dashboard', d.stats)
+      })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+  if (loading && !stats) return (
+    <div className="space-y-6 overflow-y-auto flex-1 min-h-0">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => <SkeletonStatCard key={i} />)}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <SkeletonChart height={120} />
+        <div className="lg:col-span-2">
+          <div className="grid grid-cols-2 gap-3">
+            {Array.from({ length: 6 }).map((_, i) => <SkeletonMiniCard key={i} />)}
+          </div>
+        </div>
+      </div>
+      <SkeletonChart height={140} />
     </div>
   )
 

@@ -9,6 +9,8 @@ import { Card, CardBody, CardHeader } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { IonIcon } from '@/components/ui/IonIcon'
+import { SkeletonExchangeCard } from '@/components/ui/Skeleton'
+import { cacheGet, cacheSet } from '@/lib/cache'
 import { cn } from '@/lib/utils'
 import type { CatalogExchange, ExchangeStats } from '@/types'
 import {
@@ -414,11 +416,12 @@ function ConfirmDelete({ name, onConfirm, onCancel }: { name: string; onConfirm:
 // ─── Main Page ─────────────────────────────────────────────────────────────
 
 export function ExchangesPage() {
-  const [catalog,  setCatalog]  = useState<CatalogExchange[]>([])
-  const [stats,    setStats]    = useState<ExchangeStats[]>([])
+  // 🚀 Hidrata a partir do cache — F5 mostra tudo instantâneo, revalida em background.
+  const [catalog,  setCatalog]  = useState<CatalogExchange[]>(() => cacheGet<CatalogExchange[]>('exchanges_catalog') ?? [])
+  const [stats,    setStats]    = useState<ExchangeStats[]>(() => cacheGet<ExchangeStats[]>('exchanges_stats') ?? [])
   const [search,   setSearch]   = useState('')
   const [filter,   setFilter]   = useState<'all' | 'active' | 'inactive' | 'connected'>('all')
-  const [loading,  setLoading]  = useState(true)
+  const [loading,  setLoading]  = useState(catalog.length === 0)
   const [modal,    setModal]    = useState<'create' | 'edit' | null>(null)
   const [editing,  setEditing]  = useState<CatalogExchange | null>(null)
   const [deleting, setDeleting] = useState<CatalogExchange | null>(null)
@@ -426,10 +429,10 @@ export function ExchangesPage() {
   const [detail,   setDetail]   = useState<CatalogExchange | null>(null)
 
   const load = async () => {
-    setLoading(true)
+    if (catalog.length === 0) setLoading(true)
     await Promise.all([
-      apiAdminExchangesCatalog().then(d => setCatalog(d.exchanges)).catch(console.error),
-      apiAdminExchangeStats().then(d => setStats(d.exchanges)).catch(console.error),
+      apiAdminExchangesCatalog().then(d => { setCatalog(d.exchanges); cacheSet('exchanges_catalog', d.exchanges) }).catch(console.error),
+      apiAdminExchangeStats().then(d => { setStats(d.exchanges); cacheSet('exchanges_stats', d.exchanges) }).catch(console.error),
     ])
     setLoading(false)
   }
@@ -608,8 +611,8 @@ export function ExchangesPage() {
 
       {/* Grid */}
       {loading ? (
-        <div className="flex items-center justify-center h-48">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+          {Array.from({ length: 12 }).map((_, i) => <SkeletonExchangeCard key={i} />)}
         </div>
       ) : displayed.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-muted-fore gap-2">

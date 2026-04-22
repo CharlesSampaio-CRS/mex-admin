@@ -257,11 +257,21 @@ export async function apiAdminBackfillOwnerProofs() {
   )
 }
 
+export interface SharedCredentialUser {
+  id: string
+  email?: string | null
+  name?: string | null
+  created_at?: string | null
+  plan?: string | null
+  role?: string | null
+}
+
 export interface SharedCredentialGroup {
   api_key_hash: string
   user_ids: string[]
   exchange_types: string[]
   emails: string[]
+  users?: SharedCredentialUser[]
   count: number
 }
 

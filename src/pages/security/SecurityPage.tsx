@@ -6,6 +6,7 @@ import {
   type SecurityEventItem,
   type BackfillReport,
   type SharedCredentialGroup,
+  type SharedCredentialUser,
 } from '@/lib/api'
 import { Card, CardBody, CardHeader } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -97,6 +98,7 @@ export function SecurityPage() {
 
   // Expandable rows
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null)
+  const [expandedDupIdx, setExpandedDupIdx] = useState<number | null>(null)
 
   const loadDuplicates = async () => {
     setLoadingDups(true)
@@ -256,30 +258,112 @@ export function SecurityPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {duplicates.map((dup, idx) => (
-                    <tr key={idx} className="border-t border-border hover:bg-muted/20">
-                      <td className="px-3 py-2 font-mono text-[10px] text-muted-fore" title={dup.api_key_hash}>
-                        {dup.api_key_hash.slice(0, 16)}…
-                      </td>
-                      <td className="px-3 py-2">
-                        <div className="flex flex-wrap gap-1">
-                          {dup.exchange_types.map(t => (
-                            <Badge key={t} variant="default" size="sm">{t}</Badge>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-3 py-2 text-center">
-                        <Badge variant="danger" size="sm">{dup.count}</Badge>
-                      </td>
-                      <td className="px-3 py-2">
-                        <div className="flex flex-col gap-0.5">
-                          {dup.emails.map((email, i) => (
-                            <span key={i} className="text-[11px]">{email}</span>
-                          ))}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {duplicates.map((dup, idx) => {
+                    const isOpen = expandedDupIdx === idx
+                    const usersList = dup.users ?? dup.user_ids.map(id => ({ id, email: null, name: null } as SharedCredentialUser))
+                    return (
+                      <React.Fragment key={idx}>
+                        <tr
+                          className={`border-t border-border cursor-pointer hover:bg-muted/20 ${isOpen ? 'bg-muted/20' : ''}`}
+                          onClick={() => setExpandedDupIdx(isOpen ? null : idx)}
+                        >
+                          <td className="px-3 py-2 font-mono text-[10px] text-muted-fore" title={dup.api_key_hash}>
+                            <div className="flex items-center gap-1.5">
+                              <IonIcon name={isOpen ? 'chevron-down-outline' : 'chevron-forward-outline'} size={11} />
+                              {dup.api_key_hash.slice(0, 16)}…
+                            </div>
+                          </td>
+                          <td className="px-3 py-2">
+                            <div className="flex flex-wrap gap-1">
+                              {dup.exchange_types.map(t => (
+                                <Badge key={t} variant="default" size="sm">{t}</Badge>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-3 py-2 text-center">
+                            <Badge variant="danger" size="sm">{dup.count}</Badge>
+                          </td>
+                          <td className="px-3 py-2">
+                            <div className="flex flex-col gap-0.5">
+                              {usersList.map((u, i) => (
+                                <span key={i} className="text-[11px]">
+                                  {u.email ?? <span className="font-mono text-muted-fore">&lt;{u.id.slice(0, 12)}…&gt;</span>}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                        {isOpen && (
+                          <tr className="bg-muted/10 border-t border-border">
+                            <td colSpan={4} className="px-4 py-4">
+                              <div className="space-y-3">
+                                {/* Aviso */}
+                                <div className="p-3 rounded-lg bg-danger/5 border border-danger/30 text-xs">
+                                  <div className="font-semibold text-danger mb-1 flex items-center gap-1">
+                                    <IonIcon name="warning-outline" size={12} /> API key compartilhada entre {usersList.length} usuários
+                                  </div>
+                                  <div className="text-muted-fore">
+                                    Somente o primeiro usuário (mais antigo) continua válido. Os demais estão bloqueados de usar esta credencial pelo sistema de <code className="font-mono">owner_proof</code>.
+                                  </div>
+                                </div>
+
+                                {/* Hash completo */}
+                                <div className="p-3 rounded-lg bg-background border border-border">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <div className="text-[10px] uppercase tracking-wide text-muted-fore">Hash completo da API key</div>
+                                    <button
+                                      className="text-[10px] text-primary hover:underline"
+                                      onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(dup.api_key_hash) }}
+                                    >
+                                      Copiar
+                                    </button>
+                                  </div>
+                                  <div className="font-mono text-[10px] break-all">{dup.api_key_hash}</div>
+                                </div>
+
+                                {/* Grid de usuários */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                  {usersList.map((u, i) => (
+                                    <div key={i} className={`p-3 rounded-lg border ${i === 0 ? 'bg-success/5 border-success/30' : 'bg-background border-border'}`}>
+                                      <div className="flex items-center justify-between mb-1">
+                                        <div className="text-[10px] uppercase tracking-wide flex items-center gap-1">
+                                          <IonIcon name={i === 0 ? 'shield-checkmark-outline' : 'lock-closed-outline'} size={11} className={i === 0 ? 'text-success' : 'text-muted-fore'} />
+                                          <span className={i === 0 ? 'text-success' : 'text-muted-fore'}>
+                                            {i === 0 ? 'Dono válido' : 'Bloqueado'}
+                                          </span>
+                                        </div>
+                                        <button
+                                          className="text-[10px] text-primary hover:underline"
+                                          onClick={(e) => { e.stopPropagation(); setUserFilter(u.id); load() }}
+                                          title="Ver eventos deste usuário"
+                                        >
+                                          Ver eventos →
+                                        </button>
+                                      </div>
+                                      <div className="text-xs space-y-0.5">
+                                        {u.email && <div><span className="text-muted-fore">Email:</span> <span className="font-medium">{u.email}</span></div>}
+                                        {u.name && <div><span className="text-muted-fore">Nome:</span> {u.name}</div>}
+                                        {u.plan && <div><span className="text-muted-fore">Plano:</span> <Badge variant="default" size="sm">{u.plan}</Badge></div>}
+                                        {u.role && u.role !== 'user' && <div><span className="text-muted-fore">Role:</span> <Badge variant="info" size="sm">{u.role}</Badge></div>}
+                                        {u.created_at && (
+                                          <div className="text-[10px] text-muted-fore">
+                                            Cadastro: {new Date(u.created_at).toLocaleDateString('pt-BR')}
+                                          </div>
+                                        )}
+                                        <div className="font-mono text-[10px] text-muted-fore break-all pt-1 border-t border-border/50 mt-1">
+                                          {u.id}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    )
+                  })}
                 </tbody>
               </table>
               <div className="px-3 py-2 text-[10px] text-muted-fore border-t border-border bg-muted/20">

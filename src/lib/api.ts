@@ -226,6 +226,7 @@ export interface SecurityEventItem {
   user_id: string
   severity: 'critical' | 'warning' | 'info'
   details?: Record<string, unknown>
+  user?:  { email?: string; name?: string }
   created_at: string | { $date: string | { $numberLong: string } }
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   apiAdminSecurityEvents,
   apiAdminBackfillOwnerProofs,
@@ -14,14 +14,49 @@ import { IonIcon } from '@/components/ui/IonIcon'
 import { formatRelative } from '@/lib/utils'
 
 // ── helpers ──────────────────────────────────────────────────────────────────
-const EVENT_META: Record<string, { label: string; severity: 'critical' | 'warning' | 'info'; icon: string }> = {
-  cross_user_dedup:           { label: 'Chave em conta alheia',   severity: 'critical', icon: 'shield-checkmark-outline' },
-  same_user_dedup:            { label: 'Duplicata mesma conta',   severity: 'info',     icon: 'copy-outline' },
-  ownership_mismatch:         { label: 'Proof inválido',          severity: 'critical', icon: 'warning-outline' },
-  decrypt_failure:            { label: 'Falha ao decriptar',      severity: 'critical', icon: 'close-circle-outline' },
-  ownership_proof_missing:    { label: 'Proof ausente (legado)',  severity: 'warning',  icon: 'alert-circle-outline' },
-  ownership_proof_backfilled: { label: 'Proof migrado',           severity: 'info',     icon: 'checkmark-done-outline' },
-  cross_user_access:          { label: 'Acesso cross-user',       severity: 'critical', icon: 'shield-half-outline' },
+const EVENT_META: Record<string, { label: string; severity: 'critical' | 'warning' | 'info'; icon: string; description: string }> = {
+  cross_user_dedup: {
+    label: 'Chave em conta alheia',
+    severity: 'critical',
+    icon: 'shield-checkmark-outline',
+    description: 'Um usuário tentou cadastrar uma API key que JÁ pertence a outra conta. Bloqueado automaticamente. Possível tentativa de fraude ou compartilhamento indevido.',
+  },
+  same_user_dedup: {
+    label: 'Duplicata na mesma conta',
+    severity: 'info',
+    icon: 'copy-outline',
+    description: 'O usuário tentou cadastrar uma API key que ele mesmo já tinha. Bloqueado pra evitar duplicidade. Sem riscos.',
+  },
+  ownership_mismatch: {
+    label: 'Proof inválido (CRÍTICO)',
+    severity: 'critical',
+    icon: 'warning-outline',
+    description: 'Uma credencial tem o selo de segurança inválido — indica manipulação direta no banco de dados ou rotação de ENCRYPTION_KEY sem migração. Credencial foi BLOQUEADA automaticamente.',
+  },
+  decrypt_failure: {
+    label: 'Falha ao decriptar',
+    severity: 'critical',
+    icon: 'close-circle-outline',
+    description: 'Não foi possível decriptar uma credencial com a ENCRYPTION_KEY atual. Pode ser: chave foi rotacionada, credencial corrompida ou tampering.',
+  },
+  ownership_proof_missing: {
+    label: 'Proof ausente (legado)',
+    severity: 'warning',
+    icon: 'alert-circle-outline',
+    description: 'Credencial criada ANTES da feature de segurança ser implantada. Não representa risco, mas precisa passar pelo backfill.',
+  },
+  ownership_proof_backfilled: {
+    label: 'Proof migrado',
+    severity: 'info',
+    icon: 'checkmark-done-outline',
+    description: 'Credencial legada ganhou o selo de segurança pelo backfill. Está agora 100% protegida.',
+  },
+  cross_user_access: {
+    label: 'Acesso cross-user',
+    severity: 'critical',
+    icon: 'shield-half-outline',
+    description: 'Tentativa de acesso a credencial de outro usuário. Bloqueado.',
+  },
 }
 
 function severityBadge(sev: string) {
@@ -59,6 +94,9 @@ export function SecurityPage() {
   // Duplicates (shared credentials between users)
   const [duplicates, setDuplicates] = useState<SharedCredentialGroup[]>([])
   const [loadingDups, setLoadingDups] = useState(true)
+
+  // Expandable rows
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(null)
 
   const loadDuplicates = async () => {
     setLoadingDups(true)
@@ -380,30 +418,141 @@ export function SecurityPage() {
                 </thead>
                 <tbody>
                   {events.map((ev, idx) => {
-                    const meta = EVENT_META[ev.event] ?? { label: ev.event, severity: ev.severity, icon: 'help-circle-outline' }
+                    const meta = EVENT_META[ev.event] ?? { label: ev.event, severity: ev.severity, icon: 'help-circle-outline', description: '' }
                     const when = extractDate(ev.created_at)
+                    const isOpen = expandedIdx === idx
+                    const userEmail = ev.user?.email
+                    const userName = ev.user?.name
+                    const details = (ev.details ?? {}) as Record<string, unknown>
+                    const ownerUser = details.owner_user as { email?: string; name?: string } | undefined
                     return (
-                      <tr key={idx} className="border-t border-border hover:bg-muted/20">
-                        <td className="px-3 py-2 whitespace-nowrap text-muted-fore">
-                          {when ? formatRelative(when.toISOString()) : '—'}
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <div className="flex items-center gap-1.5">
-                            <IonIcon name={meta.icon} size={13} className={
-                              meta.severity === 'critical' ? 'text-danger' :
-                              meta.severity === 'warning'  ? 'text-warning' : 'text-primary'
-                            } />
-                            <span>{meta.label}</span>
-                          </div>
-                        </td>
-                        <td className="px-3 py-2">{severityBadge(ev.severity)}</td>
-                        <td className="px-3 py-2 font-mono text-muted-fore" title={ev.user_id}>
-                          {truncate(ev.user_id || '—', 12)}
-                        </td>
-                        <td className="px-3 py-2 font-mono text-[10px] text-muted-fore max-w-[320px] truncate" title={JSON.stringify(ev.details ?? {})}>
-                          {ev.details ? JSON.stringify(ev.details) : '—'}
-                        </td>
-                      </tr>
+                      <React.Fragment key={idx}>
+                        <tr
+                          className={`border-t border-border cursor-pointer hover:bg-muted/20 ${isOpen ? 'bg-muted/20' : ''}`}
+                          onClick={() => setExpandedIdx(isOpen ? null : idx)}
+                        >
+                          <td className="px-3 py-2 whitespace-nowrap text-muted-fore">
+                            <div className="flex items-center gap-1.5">
+                              <IonIcon name={isOpen ? 'chevron-down-outline' : 'chevron-forward-outline'} size={11} />
+                              {when ? formatRelative(when.toISOString()) : '—'}
+                            </div>
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            <div className="flex items-center gap-1.5">
+                              <IonIcon name={meta.icon} size={13} className={
+                                meta.severity === 'critical' ? 'text-danger' :
+                                meta.severity === 'warning'  ? 'text-warning' : 'text-primary'
+                              } />
+                              <span>{meta.label}</span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2">{severityBadge(ev.severity)}</td>
+                          <td className="px-3 py-2 text-muted-fore" title={ev.user_id}>
+                            {userEmail ? (
+                              <div className="flex flex-col">
+                                <span>{userEmail}</span>
+                                {userName && <span className="text-[10px] opacity-60">{userName}</span>}
+                              </div>
+                            ) : (
+                              <span className="font-mono">{truncate(ev.user_id || '—', 12)}</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 font-mono text-[10px] text-muted-fore max-w-[320px] truncate">
+                            {ev.details ? JSON.stringify(ev.details) : '—'}
+                          </td>
+                        </tr>
+                        {isOpen && (
+                          <tr className="bg-muted/10 border-t border-border">
+                            <td colSpan={5} className="px-4 py-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Descrição */}
+                                {meta.description && (
+                                  <div className="md:col-span-2 p-3 rounded-lg bg-background border border-border">
+                                    <div className="text-[10px] uppercase tracking-wide text-muted-fore mb-1">O que isso significa</div>
+                                    <div className="text-xs">{meta.description}</div>
+                                  </div>
+                                )}
+
+                                {/* Usuário */}
+                                <div className="p-3 rounded-lg bg-background border border-border">
+                                  <div className="text-[10px] uppercase tracking-wide text-muted-fore mb-1 flex items-center gap-1">
+                                    <IonIcon name="person-outline" size={11} /> Usuário
+                                  </div>
+                                  <div className="space-y-1 text-xs">
+                                    {userEmail && <div><span className="text-muted-fore">Email:</span> <span className="font-medium">{userEmail}</span></div>}
+                                    {userName && <div><span className="text-muted-fore">Nome:</span> {userName}</div>}
+                                    <div className="font-mono text-[10px] text-muted-fore break-all">
+                                      <span>ID:</span> {ev.user_id || '—'}
+                                    </div>
+                                    {ev.user_id && (
+                                      <button
+                                        className="text-[10px] text-primary hover:underline mt-1"
+                                        onClick={(e) => { e.stopPropagation(); setUserFilter(ev.user_id!); load() }}
+                                      >
+                                        Ver todos eventos deste usuário →
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Quando */}
+                                <div className="p-3 rounded-lg bg-background border border-border">
+                                  <div className="text-[10px] uppercase tracking-wide text-muted-fore mb-1 flex items-center gap-1">
+                                    <IonIcon name="time-outline" size={11} /> Quando
+                                  </div>
+                                  <div className="text-xs">
+                                    {when ? (
+                                      <>
+                                        <div>{when.toLocaleString('pt-BR')}</div>
+                                        <div className="text-muted-fore text-[10px]">{formatRelative(when.toISOString())}</div>
+                                      </>
+                                    ) : '—'}
+                                  </div>
+                                </div>
+
+                                {/* Owner user (quando cross_user_dedup) */}
+                                {ownerUser && (
+                                  <div className="md:col-span-2 p-3 rounded-lg bg-danger/5 border border-danger/30">
+                                    <div className="text-[10px] uppercase tracking-wide text-danger mb-1 flex items-center gap-1">
+                                      <IonIcon name="shield-checkmark-outline" size={11} /> Dono real da API key
+                                    </div>
+                                    <div className="text-xs space-y-1">
+                                      {ownerUser.email && <div><span className="text-muted-fore">Email:</span> <span className="font-medium">{ownerUser.email}</span></div>}
+                                      {ownerUser.name && <div><span className="text-muted-fore">Nome:</span> {ownerUser.name}</div>}
+                                      {Boolean(details.owner_user_id) && (
+                                        <div className="font-mono text-[10px] text-muted-fore break-all">
+                                          <span>ID:</span> {String(details.owner_user_id)}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* JSON completo */}
+                                <div className="md:col-span-2 p-3 rounded-lg bg-background border border-border">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <div className="text-[10px] uppercase tracking-wide text-muted-fore flex items-center gap-1">
+                                      <IonIcon name="code-slash-outline" size={11} /> Detalhes técnicos
+                                    </div>
+                                    <button
+                                      className="text-[10px] text-primary hover:underline"
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        navigator.clipboard.writeText(JSON.stringify(ev, null, 2))
+                                      }}
+                                    >
+                                      Copiar JSON
+                                    </button>
+                                  </div>
+                                  <pre className="text-[10px] font-mono bg-muted/30 p-2 rounded overflow-x-auto max-h-64">
+{JSON.stringify(ev.details ?? {}, null, 2)}
+                                  </pre>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
                     )
                   })}
                 </tbody>

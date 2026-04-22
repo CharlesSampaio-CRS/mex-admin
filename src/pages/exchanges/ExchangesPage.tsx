@@ -13,9 +13,6 @@ import { SkeletonExchangeCard } from '@/components/ui/Skeleton'
 import { cacheGet, cacheSet } from '@/lib/cache'
 import { cn } from '@/lib/utils'
 import type { CatalogExchange, ExchangeStats } from '@/types'
-import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell,
-} from 'recharts'
 
 // ─── CoinGecko icon helper ─────────────────────────────────────────────────
 
@@ -516,6 +513,7 @@ export function ExchangesPage() {
           .map(c => {
             const s = statsMap[c.ccxt_id]
             return {
+              exchange:    c,
               name:        c.name,
               ccxt_id:     c.ccxt_id,
               user_count:  s?.user_count ?? 0,
@@ -543,44 +541,34 @@ export function ExchangesPage() {
               </div>
             </CardHeader>
             <CardBody>
-              <div style={{ width: '100%', height: Math.max(220, chartData.length * 28 + 40) }}>
-                <ResponsiveContainer>
-                  <BarChart
-                    data={chartData}
-                    layout="vertical"
-                    margin={{ top: 4, right: 56, bottom: 4, left: 8 }}
-                  >
-                    <XAxis
-                      type="number"
-                      domain={[0, Math.ceil(maxUsers * 1.2)]}
-                      tick={{ fontSize: 10, fill: 'currentColor' }}
-                      className="text-muted-fore"
-                      allowDecimals={false}
-                    />
-                    <YAxis
-                      type="category"
-                      dataKey="name"
-                      tick={{ fontSize: 11, fill: 'currentColor' }}
-                      className="text-muted-fore"
-                      width={100}
-                    />
-                    <Tooltip
-                      cursor={{ fill: 'rgba(127,127,127,0.08)' }}
-                      contentStyle={{
-                        background: 'var(--card, #1a1a1a)',
-                        border: '1px solid var(--border, #2a2a2a)',
-                        borderRadius: 8,
-                        fontSize: 12,
-                      }}
-                      formatter={(value: number) => [`${value} ${value === 1 ? 'usuário conectado' : 'usuários conectados'}`, '']}
-                    />
-                    <Bar dataKey="user_count" radius={[0, 6, 6, 0]} label={{ position: 'right', fontSize: 11, fill: 'currentColor' }}>
-                      {chartData.map((_d, i) => (
-                        <Cell key={i} fill={palette[i % palette.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="flex flex-col gap-1.5">
+                {chartData.map((d, i) => {
+                  const pct = (d.user_count / maxUsers) * 100
+                  const color = palette[i % palette.length]
+                  return (
+                    <div
+                      key={d.ccxt_id}
+                      className="grid items-center gap-2 text-xs hover:bg-muted/30 rounded-md px-1.5 py-1 transition-colors"
+                      style={{ gridTemplateColumns: '22px 100px 1fr 36px' }}
+                    >
+                      <ExchangeIcon exchange={d.exchange} size={20} />
+                      <span className="font-medium text-foreground truncate">{d.name}</span>
+                      <div className="h-4 bg-muted/40 rounded-sm overflow-hidden relative">
+                        <div
+                          className="h-full rounded-sm transition-all"
+                          style={{
+                            width: `${Math.max(pct, d.user_count > 0 ? 3 : 0)}%`,
+                            background: color,
+                            opacity: d.user_count === 0 ? 0 : 1,
+                          }}
+                        />
+                      </div>
+                      <span className="font-semibold text-foreground tabular-nums text-right">
+                        {d.user_count}
+                      </span>
+                    </div>
+                  )
+                })}
               </div>
             </CardBody>
           </Card>

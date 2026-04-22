@@ -57,6 +57,8 @@ function InfoRow({ icon, label, value, mono }: { icon: string; label: string; va
 export function UserDetailModal({ user, onClose, onUserUpdated }: Props) {
   const [loading,     setLoading]     = useState(false)
   const [planLoading, setPlanLoading] = useState(false)
+  const [confirmBlockOpen, setConfirmBlockOpen] = useState(false)
+  const [blockReason, setBlockReason] = useState('')
 
   const handlePlan = async (newPlan: string) => {
     if (newPlan === user.subscription_plan) return
@@ -69,15 +71,27 @@ export function UserDetailModal({ user, onClose, onUserUpdated }: Props) {
   }
 
   const handleToggleBlock = async () => {
-    setLoading(true)
-    try {
-      if (isActive) {
-        await apiBlockUser(user.user_id)
-        onUserUpdated({ ...user, is_active: false })
-      } else {
+    // Desbloquear: ação reversível, executa direto
+    if (!isActive) {
+      setLoading(true)
+      try {
         await apiUnblockUser(user.user_id)
         onUserUpdated({ ...user, is_active: true })
-      }
+      } catch (e) { console.error(e) }
+      finally { setLoading(false) }
+      return
+    }
+    // Bloquear: pede confirmação
+    setBlockReason('')
+    setConfirmBlockOpen(true)
+  }
+
+  const confirmBlock = async () => {
+    setLoading(true)
+    try {
+      await apiBlockUser(user.user_id)
+      onUserUpdated({ ...user, is_active: false })
+      setConfirmBlockOpen(false)
     } catch (e) { console.error(e) }
     finally { setLoading(false) }
   }
@@ -244,6 +258,90 @@ export function UserDetailModal({ user, onClose, onUserUpdated }: Props) {
           </div>
         </div>
       </div>
+
+      {/* ── Modal de confirmação de bloqueio ── */}
+      {confirmBlockOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div
+            className="w-full max-w-md bg-card border border-border rounded-xl shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-border flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-400/15 flex items-center justify-center shrink-0">
+                <IonIcon name="ban-outline" size={20} className="text-red-600 dark:text-red-400" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm font-bold text-foreground">Bloquear conta?</h3>
+                <p className="text-[11px] text-muted-fore truncate">{user.email}</p>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="px-5 py-4 space-y-3 text-xs text-foreground">
+              <p>Esta ação irá:</p>
+              <ul className="space-y-1.5 pl-1">
+                <li className="flex items-start gap-2">
+                  <IonIcon name="close-circle-outline" size={14} className="text-red-500 mt-0.5 shrink-0" />
+                  <span>Impedir o login no app e no site</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <IonIcon name="log-out-outline" size={14} className="text-red-500 mt-0.5 shrink-0" />
+                  <span>Invalidar a sessão ativa atual do usuário</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <IonIcon name="shield-outline" size={14} className="text-red-500 mt-0.5 shrink-0" />
+                  <span>Bloquear todos os endpoints autenticados (403 ACCOUNT_BLOCKED)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <IonIcon name="checkmark-circle-outline" size={14} className="text-emerald-500 mt-0.5 shrink-0" />
+                  <span>Ação reversível — você pode desbloquear a qualquer momento</span>
+                </li>
+              </ul>
+
+              <div className="pt-2">
+                <label className="text-[10px] font-semibold text-muted-fore uppercase tracking-widest mb-1 block">
+                  Motivo (opcional, registrado em log)
+                </label>
+                <textarea
+                  value={blockReason}
+                  onChange={e => setBlockReason(e.target.value)}
+                  placeholder="Ex: credencial compartilhada, fraude, solicitação do usuário..."
+                  rows={2}
+                  className="w-full text-xs px-3 py-2 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-fore outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 resize-none"
+                />
+              </div>
+
+              <div className="rounded-lg bg-amber-50 dark:bg-amber-400/10 border border-amber-200 dark:border-amber-400/20 px-3 py-2 text-[11px] text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                <IonIcon name="warning-outline" size={14} className="shrink-0 mt-0.5" />
+                <span>O usuário verá uma tela informando que a conta foi bloqueada, com contato do suporte.</span>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-3 border-t border-border flex justify-end gap-2 bg-muted/30">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setConfirmBlockOpen(false)}
+                disabled={loading}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                loading={loading}
+                onClick={confirmBlock}
+                className="text-white bg-red-600 hover:bg-red-700 border-red-600"
+              >
+                <IonIcon name="ban-outline" size={14} />
+                Sim, bloquear
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

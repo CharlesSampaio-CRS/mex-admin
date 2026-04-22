@@ -4,6 +4,7 @@ import { formatCurrency, planColor, planLabel } from '@/lib/utils'
 import { cacheGet, cacheSet } from '@/lib/cache'
 import { Card, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
 import { IonIcon } from '@/components/ui/IonIcon'
 import { SkeletonStatCard, SkeletonMiniCard, SkeletonChart } from '@/components/ui/Skeleton'
 import {
@@ -37,15 +38,18 @@ export function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(() => cacheGet<DashboardStats>('dashboard'))
   const [loading, setLoading] = useState(!stats)
 
-  useEffect(() => {
-    apiDashboardStats()
+  const load = () => {
+    setLoading(true)
+    return apiDashboardStats()
       .then(d => {
         setStats(d.stats)
         cacheSet('dashboard', d.stats)
       })
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [])
+  }
+
+  useEffect(() => { load() }, [])
 
   if (loading && !stats) return (
     <div className="space-y-6 overflow-y-auto flex-1 min-h-0">
@@ -76,6 +80,14 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6 overflow-y-auto flex-1 min-h-0">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div />
+        <Button variant="secondary" size="sm" onClick={load} loading={loading}>
+          <IonIcon name="refresh-outline" size={14} /> Atualizar
+        </Button>
+      </div>
+
       {/* Stats grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon="people-outline"          label="Total usuários"  value={stats.total_users}   sub={`+${stats.new_users_7d} últimos 7d`}  color="bg-blue-500/10 text-blue-500" />

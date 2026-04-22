@@ -480,9 +480,14 @@ export function ExchangesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-fore">{catalog.length} no catálogo · {stats.length} com usuários conectados</p>
-        <Button size="sm" onClick={() => setModal('create')}>
-          <IonIcon name="add-outline" size={16} /> Nova Exchange
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" size="sm" onClick={load} loading={loading}>
+            <IonIcon name="refresh-outline" size={14} /> Atualizar
+          </Button>
+          <Button size="sm" onClick={() => setModal('create')}>
+            <IonIcon name="add-outline" size={16} /> Nova Exchange
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}

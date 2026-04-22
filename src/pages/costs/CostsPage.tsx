@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Card, CardBody } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
 import { formatCurrency } from '@/lib/utils'
 import { TOOLS } from '@/lib/tools'
 import { IonIcon } from '@/components/ui/IonIcon'
@@ -106,7 +107,12 @@ export function CostsPage() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-fore">Custos mensais de operação — alterne entre Gratuito / Pago e edite o valor</p>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-fore">Custos mensais de operação — alterne entre Gratuito / Pago e edite o valor</p>
+        <Button variant="secondary" size="sm" onClick={load} loading={loading}>
+          <IonIcon name="refresh-outline" size={14} /> Atualizar
+        </Button>
+      </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">

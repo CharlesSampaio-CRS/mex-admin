@@ -11,6 +11,9 @@ import { Button } from '@/components/ui/Button'
 import { IonIcon } from '@/components/ui/IonIcon'
 import { cn } from '@/lib/utils'
 import type { CatalogExchange, ExchangeStats } from '@/types'
+import {
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell,
+} from 'recharts'
 
 // ─── CoinGecko icon helper ─────────────────────────────────────────────────
 
@@ -485,9 +488,9 @@ export function ExchangesPage() {
       {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Total catálogo', value: catalog.length,                          icon: 'swap-horizontal-outline',  color: 'text-primary'  },
-          { label: 'Ativas',         value: catalog.filter(e => e.is_active).length,  icon: 'checkmark-circle-outline', color: 'text-success'  },
-          { label: 'Com usuários',   value: stats.length,                             icon: 'people-outline',           color: 'text-warning'  },
+          { label: 'Total catálogo',        value: catalog.length,                            icon: 'swap-horizontal-outline',  color: 'text-primary' },
+          { label: 'Disponíveis aos usuários', value: catalog.filter(e => e.is_active).length, icon: 'checkmark-circle-outline', color: 'text-success' },
+          { label: 'Com usuários',          value: stats.length,                              icon: 'people-outline',           color: 'text-warning' },
         ].map(s => (
           <Card key={s.label}>
             <CardBody className="flex items-center gap-3 py-3">
@@ -500,6 +503,88 @@ export function ExchangesPage() {
           </Card>
         ))}
       </div>
+
+      {/* Users per exchange chart */}
+      {stats.length > 0 && (() => {
+        const chartData = stats
+          .slice()
+          .sort((a, b) => b.user_count - a.user_count)
+          .map(s => {
+            const cat = catalog.find(c => c.ccxt_id === s.exchange_id)
+            return {
+              name:         cat?.name ?? s.name ?? s.exchange_id,
+              ccxt_id:      s.exchange_id,
+              user_count:   s.user_count,
+              active_count: s.active_count ?? 0,
+            }
+          })
+        const totalUsers   = chartData.reduce((acc, d) => acc + d.user_count, 0)
+        const totalActive  = chartData.reduce((acc, d) => acc + d.active_count, 0)
+        const maxUsers     = Math.max(...chartData.map(d => d.user_count), 1)
+        const palette = [
+          '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981',
+          '#06b6d4', '#f43f5e', '#84cc16', '#eab308', '#6366f1',
+          '#14b8a6', '#ef4444', '#a855f7',
+        ]
+        return (
+          <Card accent>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Usuários por exchange</p>
+                  <p className="text-xs text-muted-fore mt-0.5">
+                    {totalUsers} conexões · {totalActive} ativas · {chartData.length} exchanges em uso
+                  </p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardBody>
+              <div style={{ width: '100%', height: Math.max(180, chartData.length * 28 + 40) }}>
+                <ResponsiveContainer>
+                  <BarChart
+                    data={chartData}
+                    layout="vertical"
+                    margin={{ top: 4, right: 48, bottom: 4, left: 8 }}
+                  >
+                    <XAxis
+                      type="number"
+                      domain={[0, Math.ceil(maxUsers * 1.15)]}
+                      tick={{ fontSize: 10, fill: 'currentColor' }}
+                      className="text-muted-fore"
+                      allowDecimals={false}
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      tick={{ fontSize: 11, fill: 'currentColor' }}
+                      className="text-muted-fore"
+                      width={90}
+                    />
+                    <Tooltip
+                      cursor={{ fill: 'rgba(127,127,127,0.08)' }}
+                      contentStyle={{
+                        background: 'var(--card, #1a1a1a)',
+                        border: '1px solid var(--border, #2a2a2a)',
+                        borderRadius: 8,
+                        fontSize: 12,
+                      }}
+                      formatter={(value: number, _n, item) => {
+                        const d = item?.payload as typeof chartData[0] | undefined
+                        return [`${value} usuários${d ? ` (${d.active_count} ativos)` : ''}`, 'Total']
+                      }}
+                    />
+                    <Bar dataKey="user_count" radius={[0, 6, 6, 0]} label={{ position: 'right', fontSize: 11, fill: 'currentColor' }}>
+                      {chartData.map((_d, i) => (
+                        <Cell key={i} fill={palette[i % palette.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardBody>
+          </Card>
+        )
+      })()}
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-2">

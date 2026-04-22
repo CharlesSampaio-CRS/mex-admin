@@ -505,21 +505,22 @@ export function ExchangesPage() {
       </div>
 
       {/* Users per exchange chart */}
-      {stats.length > 0 && (() => {
-        const chartData = stats
-          .slice()
-          .sort((a, b) => b.user_count - a.user_count)
-          .map(s => {
-            const cat = catalog.find(c => c.ccxt_id === s.exchange_id)
+      {catalog.length > 0 && (() => {
+        // Mostra TODAS as exchanges ativas do catálogo, incluindo as com 0 usuários.
+        // user_count = número de usuários conectados a essa exchange (1 doc user_exchanges por usuário).
+        const chartData = catalog
+          .filter(c => c.is_active)
+          .map(c => {
+            const s = statsMap[c.ccxt_id]
             return {
-              name:         cat?.name ?? s.name ?? s.exchange_id,
-              ccxt_id:      s.exchange_id,
-              user_count:   s.user_count,
-              active_count: s.active_count ?? 0,
+              name:        c.name,
+              ccxt_id:     c.ccxt_id,
+              user_count:  s?.user_count ?? 0,
             }
           })
+          .sort((a, b) => b.user_count - a.user_count || a.name.localeCompare(b.name))
         const totalUsers   = chartData.reduce((acc, d) => acc + d.user_count, 0)
-        const totalActive  = chartData.reduce((acc, d) => acc + d.active_count, 0)
+        const withUsers    = chartData.filter(d => d.user_count > 0).length
         const maxUsers     = Math.max(...chartData.map(d => d.user_count), 1)
         const palette = [
           '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981',
@@ -531,24 +532,24 @@ export function ExchangesPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-foreground">Usuários por exchange</p>
+                  <p className="text-sm font-semibold text-foreground">Usuários conectados por exchange</p>
                   <p className="text-xs text-muted-fore mt-0.5">
-                    {totalUsers} conexões · {totalActive} ativas · {chartData.length} exchanges em uso
+                    {totalUsers} usuários distintos · {withUsers} de {chartData.length} exchanges em uso
                   </p>
                 </div>
               </div>
             </CardHeader>
             <CardBody>
-              <div style={{ width: '100%', height: Math.max(180, chartData.length * 28 + 40) }}>
+              <div style={{ width: '100%', height: Math.max(220, chartData.length * 28 + 40) }}>
                 <ResponsiveContainer>
                   <BarChart
                     data={chartData}
                     layout="vertical"
-                    margin={{ top: 4, right: 48, bottom: 4, left: 8 }}
+                    margin={{ top: 4, right: 56, bottom: 4, left: 8 }}
                   >
                     <XAxis
                       type="number"
-                      domain={[0, Math.ceil(maxUsers * 1.15)]}
+                      domain={[0, Math.ceil(maxUsers * 1.2)]}
                       tick={{ fontSize: 10, fill: 'currentColor' }}
                       className="text-muted-fore"
                       allowDecimals={false}
@@ -558,7 +559,7 @@ export function ExchangesPage() {
                       dataKey="name"
                       tick={{ fontSize: 11, fill: 'currentColor' }}
                       className="text-muted-fore"
-                      width={90}
+                      width={100}
                     />
                     <Tooltip
                       cursor={{ fill: 'rgba(127,127,127,0.08)' }}
@@ -568,10 +569,7 @@ export function ExchangesPage() {
                         borderRadius: 8,
                         fontSize: 12,
                       }}
-                      formatter={(value: number, _n, item) => {
-                        const d = item?.payload as typeof chartData[0] | undefined
-                        return [`${value} usuários${d ? ` (${d.active_count} ativos)` : ''}`, 'Total']
-                      }}
+                      formatter={(value: number) => [`${value} ${value === 1 ? 'usuário conectado' : 'usuários conectados'}`, '']}
                     />
                     <Bar dataKey="user_count" radius={[0, 6, 6, 0]} label={{ position: 'right', fontSize: 11, fill: 'currentColor' }}>
                       {chartData.map((_d, i) => (

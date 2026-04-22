@@ -255,3 +255,17 @@ export async function apiAdminBackfillOwnerProofs() {
     { method: 'POST' }
   )
 }
+
+export interface SharedCredentialGroup {
+  api_key_hash: string
+  user_ids: string[]
+  exchange_types: string[]
+  emails: string[]
+  count: number
+}
+
+export async function apiAdminSharedCredentials() {
+  return request<{ success: boolean; count: number; duplicates: SharedCredentialGroup[] }>(
+    '/admin/security/duplicates'
+  )
+}

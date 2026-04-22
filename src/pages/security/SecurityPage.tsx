@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import {
   apiAdminSecurityEvents,
   apiAdminBackfillOwnerProofs,
+  apiAdminSharedCredentials,
   type SecurityEventItem,
   type BackfillReport,
+  type SharedCredentialGroup,
 } from '@/lib/api'
 import { Card, CardBody, CardHeader } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -54,6 +56,22 @@ export function SecurityPage() {
   const [backfillError, setBackfillError] = useState<string | null>(null)
   const [confirmOpen, setConfirmOpen] = useState(false)
 
+  // Duplicates (shared credentials between users)
+  const [duplicates, setDuplicates] = useState<SharedCredentialGroup[]>([])
+  const [loadingDups, setLoadingDups] = useState(true)
+
+  const loadDuplicates = async () => {
+    setLoadingDups(true)
+    try {
+      const d = await apiAdminSharedCredentials()
+      setDuplicates(d.duplicates)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoadingDups(false)
+    }
+  }
+
   const load = async () => {
     setLoading(true)
     try {
@@ -71,6 +89,7 @@ export function SecurityPage() {
   }
 
   useEffect(() => { load() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [filter])
+  useEffect(() => { loadDuplicates() }, [])
 
   const runBackfill = async () => {
     setBackfilling(true)
@@ -81,6 +100,7 @@ export function SecurityPage() {
       setBackfillReport(d.report)
       // recarrega eventos pra mostrar os OwnershipProofBackfilled
       await load()
+      await loadDuplicates()
     } catch (e) {
       setBackfillError((e as Error).message)
     } finally {
@@ -154,6 +174,83 @@ export function SecurityPage() {
           </CardBody>
         </Card>
       </div>
+
+      {/* Credenciais compartilhadas entre usuários (duplicatas detectadas) */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2 justify-between w-full">
+            <div className="flex items-center gap-2">
+              <IonIcon
+                name={duplicates.length > 0 ? 'warning-outline' : 'checkmark-circle-outline'}
+                size={16}
+                className={duplicates.length > 0 ? 'text-danger' : 'text-success'}
+              />
+              <span className="font-semibold">Credenciais compartilhadas entre usuários</span>
+              <Badge variant={duplicates.length > 0 ? 'danger' : 'success'} size="sm">
+                {duplicates.length}
+              </Badge>
+            </div>
+            <Button variant="secondary" size="sm" onClick={loadDuplicates}>
+              <IonIcon name="refresh-outline" size={12} />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardBody className="p-0">
+          {loadingDups ? (
+            <div className="flex justify-center py-8">
+              <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : duplicates.length === 0 ? (
+            <div className="py-8 text-center text-xs text-muted-fore">
+              <IonIcon name="shield-checkmark-outline" size={28} className="mb-2 text-success" />
+              <div>Nenhuma credencial compartilhada detectada.</div>
+              <div className="text-[10px] mt-1">Cada API key está vinculada a apenas 1 usuário. ✅</div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead className="bg-muted/50">
+                  <tr className="text-left">
+                    <th className="px-3 py-2 font-medium text-muted-fore">Hash da API key</th>
+                    <th className="px-3 py-2 font-medium text-muted-fore">Exchanges</th>
+                    <th className="px-3 py-2 font-medium text-muted-fore text-center">Contas</th>
+                    <th className="px-3 py-2 font-medium text-muted-fore">Emails envolvidos</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {duplicates.map((dup, idx) => (
+                    <tr key={idx} className="border-t border-border hover:bg-muted/20">
+                      <td className="px-3 py-2 font-mono text-[10px] text-muted-fore" title={dup.api_key_hash}>
+                        {dup.api_key_hash.slice(0, 16)}…
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="flex flex-wrap gap-1">
+                          {dup.exchange_types.map(t => (
+                            <Badge key={t} variant="default" size="sm">{t}</Badge>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 text-center">
+                        <Badge variant="danger" size="sm">{dup.count}</Badge>
+                      </td>
+                      <td className="px-3 py-2">
+                        <div className="flex flex-col gap-0.5">
+                          {dup.emails.map((email, i) => (
+                            <span key={i} className="text-[11px]">{email}</span>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="px-3 py-2 text-[10px] text-muted-fore border-t border-border bg-muted/20">
+                ⚠️ Cada API key deve pertencer a apenas 1 usuário. Revise e remova duplicatas quando possível.
+              </div>
+            </div>
+          )}
+        </CardBody>
+      </Card>
 
       {/* Migração (backfill) */}
       <Card>

@@ -58,6 +58,7 @@ export function UserDetailModal({ user, onClose, onUserUpdated }: Props) {
   const [loading,     setLoading]     = useState(false)
   const [planLoading, setPlanLoading] = useState(false)
   const [confirmBlockOpen, setConfirmBlockOpen] = useState(false)
+  const [confirmUnblockOpen, setConfirmUnblockOpen] = useState(false)
   const [blockReason, setBlockReason] = useState('')
 
   const handlePlan = async (newPlan: string) => {
@@ -71,14 +72,9 @@ export function UserDetailModal({ user, onClose, onUserUpdated }: Props) {
   }
 
   const handleToggleBlock = async () => {
-    // Desbloquear: ação reversível, executa direto
     if (!isActive) {
-      setLoading(true)
-      try {
-        await apiUnblockUser(user.user_id)
-        onUserUpdated({ ...user, is_active: true })
-      } catch (e) { console.error(e) }
-      finally { setLoading(false) }
+      // Desbloquear: também pede confirmação agora
+      setConfirmUnblockOpen(true)
       return
     }
     // Bloquear: pede confirmação
@@ -92,6 +88,16 @@ export function UserDetailModal({ user, onClose, onUserUpdated }: Props) {
       await apiBlockUser(user.user_id)
       onUserUpdated({ ...user, is_active: false })
       setConfirmBlockOpen(false)
+    } catch (e) { console.error(e) }
+    finally { setLoading(false) }
+  }
+
+  const confirmUnblock = async () => {
+    setLoading(true)
+    try {
+      await apiUnblockUser(user.user_id)
+      onUserUpdated({ ...user, is_active: true })
+      setConfirmUnblockOpen(false)
     } catch (e) { console.error(e) }
     finally { setLoading(false) }
   }
@@ -337,6 +343,73 @@ export function UserDetailModal({ user, onClose, onUserUpdated }: Props) {
               >
                 <IonIcon name="ban-outline" size={14} />
                 Sim, bloquear
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal de confirmação de desbloqueio ── */}
+      {confirmUnblockOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div
+            className="w-full max-w-md bg-card border border-border rounded-xl shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-border flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-400/15 flex items-center justify-center shrink-0">
+                <IonIcon name="checkmark-circle-outline" size={20} className="text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm font-bold text-foreground">Desbloquear conta?</h3>
+                <p className="text-[11px] text-muted-fore truncate">{user.email}</p>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="px-5 py-4 space-y-3 text-xs text-foreground">
+              <p>Esta ação irá:</p>
+              <ul className="space-y-1.5 pl-1">
+                <li className="flex items-start gap-2">
+                  <IonIcon name="log-in-outline" size={14} className="text-emerald-500 mt-0.5 shrink-0" />
+                  <span>Restaurar o acesso ao app e ao site</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <IonIcon name="shield-checkmark-outline" size={14} className="text-emerald-500 mt-0.5 shrink-0" />
+                  <span>Permitir login normalmente (com as validações de segurança habituais)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <IonIcon name="information-circle-outline" size={14} className="text-muted-fore mt-0.5 shrink-0" />
+                  <span>O usuário precisará fazer login novamente — a sessão anterior foi invalidada no bloqueio</span>
+                </li>
+              </ul>
+
+              <div className="rounded-lg bg-amber-50 dark:bg-amber-400/10 border border-amber-200 dark:border-amber-400/20 px-3 py-2 text-[11px] text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                <IonIcon name="warning-outline" size={14} className="shrink-0 mt-0.5" />
+                <span>Certifique-se que o motivo do bloqueio foi resolvido antes de desbloquear.</span>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-3 border-t border-border flex justify-end gap-2 bg-muted/30">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setConfirmUnblockOpen(false)}
+                disabled={loading}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                loading={loading}
+                onClick={confirmUnblock}
+                className="text-white bg-emerald-600 hover:bg-emerald-700 border-emerald-600"
+              >
+                <IonIcon name="checkmark-circle-outline" size={14} />
+                Sim, desbloquear
               </Button>
             </div>
           </div>

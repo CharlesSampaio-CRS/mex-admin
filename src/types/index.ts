@@ -14,7 +14,8 @@ export interface AdminUser {
   expo_push_token?:     string
   exchange_count:       number
   exchanges:            string[]
-  is_verified:          boolean
+  email_verified:       boolean
+  is_verified?:         boolean  // alias legado — usar email_verified
   avatar?:              string
   is_active?:           boolean
   open_tickets?:        number

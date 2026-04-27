@@ -105,7 +105,7 @@ export function UserDetailModal({ user, onClose, onUserUpdated }: Props) {
   const isActive = user.is_active ?? true
 
   const flags = [
-    { label: 'E-mail verificado', ok: !!user.is_verified },
+    { label: 'E-mail verificado', ok: !!(user.email_verified ?? user.is_verified) },
     { label: 'Conta ativa',       ok: isActive },
     { label: 'TOTP ativado',      ok: !!(user as any).totp_enabled },
     { label: 'Termos aceitos',    ok: !!(user as any).terms_accepted },
@@ -155,7 +155,7 @@ export function UserDetailModal({ user, onClose, onUserUpdated }: Props) {
                 )}>
                   {planLabel(user.subscription_plan)}
                 </span>
-                {user.is_verified && (
+                {(user.email_verified ?? user.is_verified) && (
                   <span className="text-[10px] font-medium text-sky-500 flex items-center gap-0.5">
                     <IonIcon name="checkmark-circle" size={12} /> Verificado
                   </span>

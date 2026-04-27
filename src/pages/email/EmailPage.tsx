@@ -177,15 +177,28 @@ export function EmailPage() {
 
   async function handleSend() {
     setConfirm(false); setError(''); setResult(null); setSending(true)
+    // Substitui {{nome}} se destinatário específico
+    const finalHtml = targetUser
+      ? html.replace(/\{\{nome\}\}/g, targetUser.name ?? 'Usuário')
+      : html
     const payload: SendAdminEmailPayload = {
       subject: subject.trim(),
-      html: targetUser ? html.replace(/\{\{nome\}\}/g, targetUser.name ?? 'Usuário') : html,
-      text: htmlToText(html),
+      // Envia o HTML completo com o wrapper visual do template
+      html: wrapInEmailTemplate(subject.trim(), finalHtml),
+      text: htmlToText(finalHtml),
       ...(targetId ? { user_id: targetId } : {}),
     }
     try {
       const r = await apiAdminSendEmail(payload)
       setResult({ sent: r.sent, total: r.total, errors: r.errors })
+      // Limpa os inputs após sucesso
+      if (r.sent > 0) {
+        setTargetId('')
+        setSearch('')
+        setSubjectPreset('')
+        setSubject('')
+        setHtml('<p>Olá <strong>{{nome}}</strong>,</p>\n<p></p>')
+      }
     } catch (e: any) {
       setError(e.message ?? 'Erro ao enviar')
     } finally {

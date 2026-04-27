@@ -4,109 +4,75 @@ import {
   apiAdminSendEmail,
   type SendAdminEmailPayload,
 } from '@/lib/api'
-import type { AdminUser } from '@/types'
+import type { AdminUser, Plan } from '@/types'
 import { IonIcon } from '@/components/ui/IonIcon'
 
-// ─── Assuntos predefinidos ────────────────────────────────────────────────────
-const SUBJECT_PRESETS = [
+// ─── Templates predefinidos ───────────────────────────────────────────────────
+
+const PRESETS = [
   {
-    icon: 'megaphone-outline',
-    label: 'Informações importantes',
-    value: 'Informações importantes sobre o MEX',
-    body: `<p>Olá <strong>{{nome}}</strong>,</p>
-<p>Temos uma informação importante para compartilhar com você.</p>
-<p>[Escreva aqui o conteúdo da mensagem]</p>
-<p>Qualquer dúvida, entre em contato pelo suporte dentro do app.</p>
-<p>Atenciosamente,<br/><strong>Equipe MEX</strong></p>`,
+    id: 'announce', icon: 'megaphone-outline', color: '#f97316', bg: '#fff7ed',
+    label: 'Anúncio',
+    subject: 'Informações importantes sobre o MEX',
+    body: `<p>Olá <strong>{{nome}}</strong>,</p>\n<p>Temos uma informação importante para compartilhar com você.</p>\n<p>[Escreva aqui o conteúdo da mensagem]</p>\n<p>Qualquer dúvida, entre em contato pelo suporte dentro do app.</p>\n<p>Atenciosamente,<br/><strong>Equipe MEX</strong></p>`,
   },
   {
-    icon: 'rocket-outline',
-    label: 'Novidades do MEX',
-    value: 'Novidades do MEX — confira o que há de novo!',
-    body: `<p>Olá <strong>{{nome}}</strong>,</p>
-<p>Temos novidades incríveis para você! Confira o que acabamos de lançar:</p>
-<ul>
-  <li>✅ [Nova funcionalidade 1]</li>
-  <li>✅ [Nova funcionalidade 2]</li>
-  <li>✅ [Melhoria 3]</li>
-</ul>
-<p>Abra o MEX agora e explore tudo isso!</p>
-<p>Até mais,<br/><strong>Equipe MEX</strong></p>`,
+    id: 'news', icon: 'rocket-outline', color: '#7c6af7', bg: '#f5f3ff',
+    label: 'Novidades',
+    subject: 'Novidades do MEX — confira o que há de novo!',
+    body: `<p>Olá <strong>{{nome}}</strong>,</p>\n<p>Temos novidades incríveis para você! Confira o que acabamos de lançar:</p>\n<ul>\n  <li>✅ [Nova funcionalidade 1]</li>\n  <li>✅ [Nova funcionalidade 2]</li>\n  <li>✅ [Melhoria 3]</li>\n</ul>\n<p>Abra o MEX agora e explore tudo isso!</p>\n<p>Até mais,<br/><strong>Equipe MEX</strong></p>`,
   },
   {
-    icon: 'phone-portrait-outline',
-    label: 'Atualização do app',
-    value: 'Nova versão do MEX disponível',
-    body: `<p>Olá <strong>{{nome}}</strong>,</p>
-<p>Uma nova versão do MEX já está disponível na loja! Atualize agora para aproveitar as melhorias:</p>
-<ul>
-  <li>🔧 Correções de estabilidade</li>
-  <li>⚡ Melhor desempenho</li>
-  <li>✨ [Novidade da versão]</li>
-</ul>
-<p>Acesse a App Store ou Google Play e atualize o app.</p>
-<p>Abraços,<br/><strong>Equipe MEX</strong></p>`,
+    id: 'update', icon: 'phone-portrait-outline', color: '#3b82f6', bg: '#eff6ff',
+    label: 'Atualização',
+    subject: 'Nova versão do MEX disponível',
+    body: `<p>Olá <strong>{{nome}}</strong>,</p>\n<p>Uma nova versão do MEX já está disponível na loja! Atualize agora:</p>\n<ul>\n  <li>🔧 Correções de estabilidade</li>\n  <li>⚡ Melhor desempenho</li>\n  <li>✨ [Novidade da versão]</li>\n</ul>\n<p>Acesse a <strong>App Store</strong> ou <strong>Google Play</strong> e atualize.</p>\n<p>Abraços,<br/><strong>Equipe MEX</strong></p>`,
   },
   {
-    icon: 'star-outline',
-    label: 'Oferta especial',
-    value: 'Oferta especial para você — MEX Pro',
-    body: `<p>Olá <strong>{{nome}}</strong>,</p>
-<p>Preparamos uma oferta exclusiva especialmente para você!</p>
-<p><strong>🎁 [Descrição da oferta]</strong></p>
-<p>Essa condição é por tempo limitado. Não perca!</p>
-<p>Qualquer dúvida, estamos à disposição pelo suporte dentro do app.</p>
-<p>Abraços,<br/><strong>Equipe MEX</strong></p>`,
+    id: 'offer', icon: 'star-outline', color: '#f59e0b', bg: '#fffbeb',
+    label: 'Oferta',
+    subject: 'Oferta especial para você — MEX Pro',
+    body: `<p>Olá <strong>{{nome}}</strong>,</p>\n<p>Preparamos uma oferta exclusiva especialmente para você!</p>\n<p><strong>🎁 [Descrição da oferta]</strong></p>\n<p>Essa condição é por tempo limitado. Não perca!</p>\n<p>Abraços,<br/><strong>Equipe MEX</strong></p>`,
   },
   {
-    icon: 'shield-checkmark-outline',
-    label: 'Aviso de segurança',
-    value: 'Aviso de segurança — ação necessária',
-    body: `<p>Olá <strong>{{nome}}</strong>,</p>
-<p>Identificamos uma situação que requer a sua atenção em relação à segurança da sua conta.</p>
-<p><strong>[Descreva o aviso de segurança aqui]</strong></p>
-<p>Recomendamos que você:</p>
-<ul>
-  <li>🔒 Verifique os acessos recentes na sua conta</li>
-  <li>🔑 Atualize sua senha se necessário</li>
-  <li>📱 Confirme que apenas seus dispositivos têm acesso</li>
-</ul>
-<p>Em caso de dúvidas, entre em contato com o suporte imediatamente.</p>
-<p>Atenciosamente,<br/><strong>Equipe de Segurança MEX</strong></p>`,
+    id: 'security', icon: 'shield-checkmark-outline', color: '#ef4444', bg: '#fef2f2',
+    label: 'Segurança',
+    subject: 'Aviso de segurança — ação necessária',
+    body: `<p>Olá <strong>{{nome}}</strong>,</p>\n<p>Identificamos uma situação que requer a sua atenção em relação à segurança da sua conta.</p>\n<p><strong>[Descreva o aviso de segurança aqui]</strong></p>\n<p>Recomendamos que você:</p>\n<ul>\n  <li>🔒 Verifique os acessos recentes</li>\n  <li>🔑 Atualize sua senha se necessário</li>\n  <li>📱 Confirme que apenas seus dispositivos têm acesso</li>\n</ul>\n<p>Atenciosamente,<br/><strong>Equipe de Segurança MEX</strong></p>`,
   },
   {
-    icon: 'bulb-outline',
-    label: 'Dica de uso',
-    value: 'Dica: sabia que você pode fazer isso no MEX?',
-    body: `<p>Olá <strong>{{nome}}</strong>,</p>
-<p>Sabia que o MEX tem uma funcionalidade que pode facilitar muito sua vida?</p>
-<p><strong>💡 [Nome da dica]</strong></p>
-<p>[Explique como usar a funcionalidade em 2-3 frases simples]</p>
-<p>Abra o MEX e experimente agora mesmo!</p>
-<p>Abraços,<br/><strong>Equipe MEX</strong></p>`,
+    id: 'tip', icon: 'bulb-outline', color: '#14b8a6', bg: '#f0fdfa',
+    label: 'Dica',
+    subject: 'Dica: sabia que você pode fazer isso no MEX?',
+    body: `<p>Olá <strong>{{nome}}</strong>,</p>\n<p>Sabia que o MEX tem uma funcionalidade que pode facilitar muito sua vida?</p>\n<p><strong>💡 [Nome da dica]</strong></p>\n<p>[Explique como usar em 2–3 frases simples]</p>\n<p>Abra o MEX e experimente agora mesmo!</p>\n<p>Abraços,<br/><strong>Equipe MEX</strong></p>`,
   },
   {
-    icon: 'bar-chart-outline',
-    label: 'Relatório mensal',
-    value: 'Seu resumo mensal no MEX',
-    body: `<p>Olá <strong>{{nome}}</strong>,</p>
-<p>Confira o resumo da sua atividade no MEX este mês:</p>
-<ul>
-  <li>📊 Exchanges conectadas: [N]</li>
-  <li>💰 Saldo total monitorado: [valor]</li>
-  <li>🔔 Alertas disparados: [N]</li>
-</ul>
-<p>Continue acompanhando seus ativos com o MEX!</p>
-<p>Abraços,<br/><strong>Equipe MEX</strong></p>`,
+    id: 'report', icon: 'bar-chart-outline', color: '#22c55e', bg: '#f0fdf4',
+    label: 'Relatório',
+    subject: 'Seu resumo mensal no MEX',
+    body: `<p>Olá <strong>{{nome}}</strong>,</p>\n<p>Confira o resumo da sua atividade no MEX este mês:</p>\n<ul>\n  <li>📊 Exchanges conectadas: [N]</li>\n  <li>💰 Saldo total monitorado: [valor]</li>\n  <li>🔔 Alertas disparados: [N]</li>\n</ul>\n<p>Continue acompanhando seus ativos com o MEX!</p>\n<p>Abraços,<br/><strong>Equipe MEX</strong></p>`,
   },
   {
-    icon: 'create-outline',
-    label: 'Personalizado…',
-    value: '__custom__',
-    body: `<p>Olá <strong>{{nome}}</strong>,</p>
-<p></p>`,
+    id: 'custom', icon: 'create-outline', color: '#94a3b8', bg: '#f8fafc',
+    label: 'Livre',
+    subject: '',
+    body: `<p>Olá <strong>{{nome}}</strong>,</p>\n<p></p>`,
   },
-]
+] as const
+
+// ─── Badges de plano ──────────────────────────────────────────────────────────
+
+const PLAN_BADGE: Record<Plan, { label: string; cls: string }> = {
+  premium: { label: 'PREMIUM', cls: 'bg-amber-500/20 text-amber-400 border border-amber-500/30' },
+  pro:     { label: 'PRO',     cls: 'bg-violet-500/20 text-violet-400 border border-violet-500/30' },
+  free:    { label: 'FREE',    cls: 'bg-slate-700/60 text-slate-500 border border-slate-700/60' },
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getInitials(name: string): string {
+  return name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('')
+}
 
 function htmlToText(html: string): string {
   return html
@@ -115,103 +81,95 @@ function htmlToText(html: string): string {
     .replace(/\n{3,}/g, '\n\n').trim()
 }
 
+// ─── Preview HTML — replica fiel do template Rust ────────────────────────────
+
 const LOGO_URL = '/admin/icons/icon.png'
 const ACCENT   = '#7c6af7'
 
-/**
- * Preview fiel ao template Rust: fundo claro #f4f4f8, card branco, barra de
- * acento, logo via URL local (no email real o Rust usa cid:mex-logo).
- */
-function wrapInEmailTemplate(subject: string, html: string) {
+function buildPreview(subject: string, body: string, recipientName = 'João Silva'): string {
+  const content = body.replace(
+    /\{\{nome\}\}/g,
+    `<strong style="color:#12112a">${recipientName}</strong>`,
+  )
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>${subject || '(sem assunto)'}</title>
+  <style>
+    body { margin:0; padding:0; background:#eceaf8; }
+    .eb p            { margin:0 0 16px 0; font-size:15px; line-height:1.78; color:#48466a; }
+    .eb p:last-child { margin-bottom:0; }
+    .eb strong       { color:#12112a; font-weight:600; }
+    .eb a            { color:${ACCENT}; text-decoration:none; font-weight:500; }
+    .eb ul, .eb ol   { margin:0 0 16px 0; padding-left:22px; }
+    .eb li           { margin-bottom:8px; font-size:15px; line-height:1.65; color:#48466a; }
+    .eb h2           { margin:0 0 14px 0; font-size:18px; font-weight:700; color:#12112a; }
+    .eb .callout     { background:#f5f3ff; border-left:3px solid ${ACCENT}; border-radius:0 10px 10px 0; padding:14px 16px; margin:0 0 16px 0; }
+    .eb .callout p   { color:#524fa0; font-size:14px; margin-bottom:0; }
+    .eb .btn         { display:inline-block; background:${ACCENT}; color:#fff !important; text-decoration:none !important; padding:13px 30px; border-radius:10px; font-weight:700; font-size:15px; }
+  </style>
 </head>
-<body style="margin:0;padding:0;background:#f4f4f8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f8;">
-  <tr>
-    <td align="center" style="padding:40px 16px 56px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;">
-
-        <!-- Logo -->
-        <tr>
-          <td align="center" style="padding-bottom:24px;">
-            <a href="https://mex.app.br" style="text-decoration:none;display:block;">
-              <img src="${LOGO_URL}" width="72" height="72" alt="Mex App"
-                style="display:block;border-radius:18px;margin:0 auto;border:0;">
-            </a>
-          </td>
-        </tr>
-
-        <!-- Card -->
-        <tr>
-          <td style="background:#ffffff;border-radius:16px;border:1px solid #e8e8f0;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.07);">
-
-            <!-- Barra de acento -->
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-              <tr><td style="height:4px;background:${ACCENT};font-size:0;line-height:0;">&nbsp;</td></tr>
-            </table>
-
-            <!-- Cabeçalho -->
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td style="padding:30px 36px 20px;border-bottom:1px solid #f0f0f6;">
-                  <p style="margin:0 0 5px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${ACCENT};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Mensagem do MEX</p>
-                  <h1 style="margin:0;font-size:22px;font-weight:700;color:#1a1a2e;line-height:1.3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${subject || '(sem assunto)'}</h1>
-                </td>
-              </tr>
-            </table>
-
-            <!-- Corpo -->
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td style="padding:28px 36px 32px;font-size:15px;line-height:1.7;color:#64648a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-                  ${html || '<p>…</p>'}
-                </td>
-              </tr>
-            </table>
-
-            <!-- Rodapé -->
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td style="padding:18px 36px 24px;border-top:1px solid #f0f0f6;">
-                  <p style="margin:0 0 4px;font-size:12px;color:#a0a0bc;text-align:center;line-height:1.6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-                    Mex App &nbsp;·&nbsp; Este é um e-mail automático — não responda.
-                  </p>
-                  <p style="margin:0;font-size:11px;color:#c8c8dc;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-                    © 2026 Mex App. Todos os direitos reservados.
-                  </p>
-                </td>
-              </tr>
-            </table>
-
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
+<body style="margin:0;padding:0;background:#eceaf8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#eceaf8;">
+  <tr><td align="center" style="padding:44px 16px 60px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:540px;">
+      <tr><td align="center" style="padding-bottom:22px;">
+        <img src="${LOGO_URL}" width="72" height="72" alt="MEX"
+          style="display:block;border-radius:20px;margin:0 auto;border:0;
+                 box-shadow:0 0 0 6px rgba(255,255,255,0.7),0 8px 28px rgba(124,106,247,0.22);">
+      </td></tr>
+      <tr><td style="background:#ffffff;border-radius:20px;border:1px solid #e0ddf7;overflow:hidden;
+                     box-shadow:0 6px 40px rgba(100,80,220,0.12);">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr><td style="height:5px;background:linear-gradient(90deg,${ACCENT} 0%,#a890ff 100%);font-size:0;line-height:0;">&nbsp;</td></tr>
+        </table>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr><td style="padding:32px 40px 22px;border-bottom:1px solid #f0eefb;">
+            <p style="margin:0 0 7px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${ACCENT};">Mensagem do MEX</p>
+            <h1 style="margin:0;font-size:24px;font-weight:700;color:#12112a;line-height:1.28;font-family:-apple-system,sans-serif;">${subject || '(sem assunto)'}</h1>
+          </td></tr>
+        </table>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr><td class="eb" style="padding:28px 40px 36px;font-size:15px;line-height:1.78;color:#48466a;font-family:-apple-system,sans-serif;">
+            ${content}
+          </td></tr>
+        </table>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr><td style="padding:20px 40px 28px;border-top:1px solid #f0eefb;background:#fdfcff;border-radius:0 0 20px 20px;">
+            <p style="margin:0 0 5px;font-size:13px;color:#9090b8;text-align:center;line-height:1.6;">
+              <a href="https://mex.app.br" style="color:${ACCENT};text-decoration:none;font-weight:500;">mex.app.br</a>
+              &nbsp;·&nbsp; E-mail automático — não responda.
+            </p>
+            <p style="margin:0;font-size:11px;color:#b8b8d0;text-align:center;">© 2026 Mex App. Todos os direitos reservados.</p>
+          </td></tr>
+        </table>
+      </td></tr>
+    </table>
+  </td></tr>
 </table>
 </body>
 </html>`
 }
 
+// ─── Componente principal ─────────────────────────────────────────────────────
+
+const DEFAULT_BODY = `<p>Olá <strong>{{nome}}</strong>,</p>\n<p></p>`
+
 export function EmailPage() {
-  const [allUsers, setAllUsers]           = useState<AdminUser[]>([])
-  const [loadingUsers, setLoadingUsers]   = useState(true)
-  const [search, setSearch]               = useState('')
-  const [targetId, setTargetId]           = useState<string>('')
-  const [subjectPreset, setSubjectPreset] = useState('')
-  const [subject, setSubject]             = useState('')
-  const [html, setHtml]                   = useState('<p>Olá <strong>{{nome}}</strong>,</p>\n<p></p>')
-  const [preview, setPreview]             = useState(false)
-  const [sending, setSending]             = useState(false)
-  const [result, setResult]               = useState<{ sent: number; total: number; errors: string[] } | null>(null)
-  const [error, setError]                 = useState('')
-  const [confirm, setConfirm]             = useState(false)
-  const iframeRef                         = useRef<HTMLIFrameElement>(null)
+  const [allUsers, setAllUsers]         = useState<AdminUser[]>([])
+  const [loadingUsers, setLoadingUsers] = useState(true)
+  const [search, setSearch]             = useState('')
+  const [targetId, setTargetId]         = useState('')
+  const [activePreset, setActivePreset] = useState('')
+  const [subject, setSubject]           = useState('')
+  const [html, setHtml]                 = useState(DEFAULT_BODY)
+  const [sending, setSending]           = useState(false)
+  const [result, setResult]             = useState<{ sent: number; total: number; errors: string[] } | null>(null)
+  const [error, setError]               = useState('')
+  const [confirm, setConfirm]           = useState(false)
+  const iframeRef                       = useRef<HTMLIFrameElement>(null)
 
   useEffect(() => {
     apiListUsers(1, '', '')
@@ -220,48 +178,50 @@ export function EmailPage() {
       .finally(() => setLoadingUsers(false))
   }, [])
 
+  // Preview ao vivo — atualiza a cada render
   useEffect(() => {
-    if (!preview || !iframeRef.current) return
-    const doc = iframeRef.current.contentDocument
-    if (doc) { doc.open(); doc.write(wrapInEmailTemplate(subject, html)); doc.close() }
-  }, [preview, html, subject])
+    const doc = iframeRef.current?.contentDocument
+    if (!doc) return
+    doc.open()
+    doc.write(buildPreview(subject, html, targetUser?.name ?? 'João Silva'))
+    doc.close()
+  })
 
   const filteredUsers = search.trim()
     ? allUsers.filter(u =>
         u.name.toLowerCase().includes(search.toLowerCase()) ||
-        u.email.toLowerCase().includes(search.toLowerCase())
+        u.email.toLowerCase().includes(search.toLowerCase()),
       )
     : allUsers
 
-  const targetUser     = allUsers.find(u => u.user_id === targetId)
-  const recipientLabel = targetId
-    ? `${targetUser?.name ?? 'Usuário'} <${targetUser?.email ?? targetId}>`
-    : `Todos os usuários (${allUsers.length})`
+  const targetUser  = allUsers.find(u => u.user_id === targetId)
+  const isBroadcast = !targetId
+
+  function selectPreset(id: string) {
+    const p = PRESETS.find(x => x.id === id)
+    if (!p) return
+    setActivePreset(id)
+    setSubject(p.id === 'custom' ? '' : p.subject)
+    setHtml(p.body)
+  }
 
   async function handleSend() {
     setConfirm(false); setError(''); setResult(null); setSending(true)
-    // Substitui {{nome}} se destinatário específico
     const finalHtml = targetUser
       ? html.replace(/\{\{nome\}\}/g, targetUser.name ?? 'Usuário')
       : html
     const payload: SendAdminEmailPayload = {
       subject: subject.trim(),
-      // Envia apenas o corpo — o backend envolve com email_header() / email_footer()
-      // (mesmo template usado em OTP, welcome, etc.), garantindo logo e design padronizados.
-      html: finalHtml,
-      text: htmlToText(finalHtml),
+      html:    finalHtml,   // backend envolve com email_header/email_footer
+      text:    htmlToText(finalHtml),
       ...(targetId ? { user_id: targetId } : {}),
     }
     try {
       const r = await apiAdminSendEmail(payload)
       setResult({ sent: r.sent, total: r.total, errors: r.errors })
-      // Limpa os inputs após sucesso
       if (r.sent > 0) {
-        setTargetId('')
-        setSearch('')
-        setSubjectPreset('')
-        setSubject('')
-        setHtml('<p>Olá <strong>{{nome}}</strong>,</p>\n<p></p>')
+        setTargetId(''); setSearch(''); setActivePreset('')
+        setSubject(''); setHtml(DEFAULT_BODY)
       }
     } catch (e: any) {
       setError(e.message ?? 'Erro ao enviar')
@@ -270,201 +230,412 @@ export function EmailPage() {
     }
   }
 
+  const canSend = subject.trim().length > 0 && html.trim().length > 0 && !sending
+
   return (
-    <div className="p-6 space-y-6 max-w-4xl mx-auto">
-      <div>
-        <h1 className="text-xl font-bold text-white flex items-center gap-2">
-          <IonIcon name="mail-outline" size={22} />
-          Enviar Email
-        </h1>
-        <p className="text-sm text-slate-400 mt-1">
-          Compose e envie emails para usuários específicos ou para toda a base.
-        </p>
+    <div className="flex flex-col h-full p-5 gap-4 max-w-[1400px] mx-auto">
+
+      {/* ── Cabeçalho ─────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/25
+                          flex items-center justify-center">
+            <IonIcon name="mail-outline" size={18} className="text-indigo-400" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-white leading-tight">Enviar Email</h1>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Compose e envie mensagens para usuários
+            </p>
+          </div>
+        </div>
+
+        {/* Pill de destinatário */}
+        <div className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5
+                         rounded-full border transition-colors ${
+          isBroadcast
+            ? 'bg-amber-500/10 border-amber-500/25 text-amber-400'
+            : 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
+        }`}>
+          <IonIcon name={isBroadcast ? 'radio-outline' : 'person-circle-outline'} size={13} />
+          {isBroadcast
+            ? `Broadcast — ${allUsers.length} usuários`
+            : (targetUser?.name ?? targetUser?.email ?? '…')}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-slate-800 rounded-xl border border-slate-700 p-5 space-y-4">
+      {/* ── Layout principal ───────────────────────────────────────────────── */}
+      <div className="flex gap-4 flex-1 min-h-0">
 
-          {/* Destinatário */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Destinatário</label>
-            <div className="relative mb-2">
-              <IonIcon name="search-outline" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+        {/* ══ Coluna esquerda: Compose ══════════════════════════════════════ */}
+        <div className="w-[400px] flex-shrink-0 flex flex-col gap-3 overflow-y-auto pb-1 pr-0.5">
+
+          {/* — Destinatário ——————————————————————————————————————————————— */}
+          <section className="bg-slate-800/50 rounded-2xl border border-slate-700/60 p-4">
+            <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest
+                           mb-3 flex items-center gap-1.5">
+              <IonIcon name="people-outline" size={12} className="text-slate-500" />
+              Destinatário
+            </h2>
+
+            <div className="relative mb-2.5">
+              <IonIcon name="search-outline" size={14}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
               <input
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Buscar por nome ou email…"
-                className="w-full bg-slate-900 text-white border border-slate-600 rounded-lg pl-8 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-slate-900/70 text-white border border-slate-700/70 rounded-xl
+                           pl-8 pr-8 py-2 text-sm placeholder-slate-600
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500/40
+                           focus:border-indigo-500/50 transition-colors"
               />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
-                  <IonIcon name="close-outline" size={15} />
+                <button onClick={() => setSearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2
+                             text-slate-500 hover:text-slate-300 transition-colors">
+                  <IonIcon name="close-circle" size={15} />
                 </button>
               )}
             </div>
+
             {loadingUsers ? (
-              <div className="text-slate-500 text-sm flex items-center gap-2">
-                <IonIcon name="hourglass-outline" size={14} /> Carregando usuários…
+              <div className="flex items-center justify-center gap-2 text-slate-500 text-sm py-4">
+                <IonIcon name="hourglass-outline" size={14} />
+                Carregando…
               </div>
             ) : (
-              <div className="border border-slate-600 rounded-lg overflow-hidden max-h-44 overflow-y-auto bg-slate-900">
-                {/* Opção broadcast */}
+              <div className="rounded-xl border border-slate-700/50 overflow-hidden
+                              bg-slate-900/50 max-h-52 overflow-y-auto divide-y divide-slate-800/80">
+
+                {/* Broadcast */}
                 <button
-                  onClick={() => setTargetId('')}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors border-b border-slate-700 ${
-                    targetId === '' ? 'bg-blue-600/30 text-blue-300' : 'text-slate-300 hover:bg-slate-800'
+                  onClick={() => { setTargetId(''); setSearch('') }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-all ${
+                    !targetId
+                      ? 'bg-indigo-500/15 text-indigo-300'
+                      : 'text-slate-300 hover:bg-slate-800/50'
                   }`}
                 >
-                  <IonIcon name="radio-outline" size={16} className="shrink-0 text-blue-400" />
-                  <span className="font-medium">Broadcast — todos ({allUsers.length})</span>
+                  <span className={`w-7 h-7 rounded-full flex items-center justify-center
+                                    flex-shrink-0 text-[13px] ${
+                    !targetId
+                      ? 'bg-indigo-500/25 text-indigo-300'
+                      : 'bg-slate-700/60 text-slate-400'
+                  }`}>
+                    <IonIcon name="radio-outline" size={13} />
+                  </span>
+                  <span className="font-semibold flex-1 text-left">Todos os usuários</span>
+                  <span className="text-xs px-1.5 py-0.5 rounded-md bg-slate-700/70
+                                   text-slate-400 font-medium tabular-nums">
+                    {allUsers.length}
+                  </span>
+                  {!targetId && (
+                    <IonIcon name="checkmark-circle" size={15} className="text-indigo-400 flex-shrink-0" />
+                  )}
                 </button>
-                {/* Lista de usuários */}
+
                 {filteredUsers.length === 0 ? (
-                  <div className="px-3 py-3 text-slate-500 text-sm flex items-center gap-2">
-                    <IonIcon name="search-outline" size={14} /> Nenhum usuário encontrado
+                  <div className="px-3 py-5 text-slate-600 text-sm text-center">
+                    Nenhum usuário encontrado
                   </div>
                 ) : (
-                  filteredUsers.map(u => (
-                    <button
-                      key={u.user_id}
-                      onClick={() => setTargetId(u.user_id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors border-b border-slate-800 last:border-0 ${
-                        targetId === u.user_id ? 'bg-blue-600/30 text-blue-300' : 'text-slate-300 hover:bg-slate-800'
-                      }`}
-                    >
-                      <IonIcon name="person-outline" size={14} className="shrink-0 text-slate-500" />
-                      <span className="truncate font-medium">{u.name}</span>
-                      <span className="text-slate-500 text-xs truncate ml-auto">{u.email}</span>
-                      {targetId === u.user_id && <IonIcon name="checkmark-outline" size={14} className="shrink-0 text-blue-400" />}
-                    </button>
-                  ))
+                  filteredUsers.map(u => {
+                    const badge    = PLAN_BADGE[u.subscription_plan] ?? PLAN_BADGE.free
+                    const initials = getInitials(u.name || u.email)
+                    const selected = targetId === u.user_id
+                    return (
+                      <button
+                        key={u.user_id}
+                        onClick={() => { setTargetId(u.user_id); setSearch('') }}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm
+                                    transition-all ${
+                          selected
+                            ? 'bg-indigo-500/15 text-indigo-300'
+                            : 'text-slate-300 hover:bg-slate-800/50'
+                        }`}
+                      >
+                        <span className="w-7 h-7 rounded-full bg-slate-700 flex items-center
+                                         justify-center text-[11px] font-bold text-slate-300
+                                         flex-shrink-0 select-none">
+                          {initials}
+                        </span>
+                        <span className="truncate font-medium flex-1 text-left">
+                          {u.name || u.email}
+                        </span>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${badge.cls}`}>
+                          {badge.label}
+                        </span>
+                        {selected && (
+                          <IonIcon name="checkmark-circle" size={15}
+                            className="text-indigo-400 flex-shrink-0" />
+                        )}
+                      </button>
+                    )
+                  })
                 )}
               </div>
             )}
-            <p className="text-xs text-slate-500 mt-1.5 flex items-center gap-1">
-              <IonIcon name="arrow-forward-outline" size={11} />
-              {recipientLabel}
-            </p>
-          </div>
+          </section>
 
-          {/* Assunto */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Assunto</label>
-            {/* Grid de presets */}
-            <div className="grid grid-cols-2 gap-1.5 mb-2">
-              {SUBJECT_PRESETS.map(p => (
+          {/* — Template ───────────────────────────────────————————————————— */}
+          <section className="bg-slate-800/50 rounded-2xl border border-slate-700/60 p-4">
+            <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest
+                           mb-3 flex items-center gap-1.5">
+              <IonIcon name="albums-outline" size={12} className="text-slate-500" />
+              Template
+            </h2>
+            <div className="grid grid-cols-4 gap-2">
+              {PRESETS.map(p => (
                 <button
-                  key={p.value}
-                  onClick={() => { setSubjectPreset(p.value); if (p.value !== '__custom__') setSubject(p.value); else setSubject(''); setHtml(p.body) }}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left ${
-                    subjectPreset === p.value
-                      ? 'bg-blue-600/40 border border-blue-500 text-blue-200'
-                      : 'bg-slate-900 border border-slate-700 text-slate-400 hover:border-slate-500 hover:text-white'
+                  key={p.id}
+                  title={p.subject || p.label}
+                  onClick={() => selectPreset(p.id)}
+                  className={`flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl border
+                               text-center transition-all ${
+                    activePreset === p.id
+                      ? 'border-indigo-500/70 bg-indigo-500/10 scale-[1.04] shadow-sm shadow-indigo-500/20'
+                      : 'border-slate-700/50 bg-slate-900/40 hover:border-slate-600 hover:bg-slate-800/50 hover:scale-[1.02]'
                   }`}
                 >
-                  <IonIcon name={p.icon} size={13} className="shrink-0" />
-                  <span className="truncate">{p.label}</span>
+                  <span
+                    className="w-8 h-8 rounded-xl flex items-center justify-center"
+                    style={{ background: p.bg, color: p.color }}
+                  >
+                    <IonIcon name={p.icon} size={16} />
+                  </span>
+                  <span className={`text-[10px] font-semibold leading-tight ${
+                    activePreset === p.id ? 'text-indigo-300' : 'text-slate-500'
+                  }`}>
+                    {p.label}
+                  </span>
                 </button>
               ))}
             </div>
-            {/* Campo livre */}
+          </section>
+
+          {/* — Assunto ────────────────────────────────────────────────────── */}
+          <section className="bg-slate-800/50 rounded-2xl border border-slate-700/60 p-4">
+            <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest
+                           mb-2.5 flex items-center gap-1.5">
+              <IonIcon name="text-outline" size={12} className="text-slate-500" />
+              Assunto
+            </h2>
             <input
               type="text"
               value={subject}
               onChange={e => setSubject(e.target.value)}
-              placeholder="Escreva ou edite o assunto…"
-              className="w-full bg-slate-900 text-white border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Digite o assunto do email…"
+              maxLength={120}
+              className="w-full bg-slate-900/70 text-white border border-slate-700/70 rounded-xl
+                         px-3 py-2 text-sm placeholder-slate-600
+                         focus:outline-none focus:ring-2 focus:ring-indigo-500/40
+                         focus:border-indigo-500/50 transition-colors"
             />
-          </div>
-
-          {/* Corpo HTML */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Corpo (HTML)</label>
-            <p className="text-xs text-slate-500 mb-1">
-              Use <code className="bg-slate-700 px-1 rounded">{'{{nome}}'}</code> para personalizar com o nome.
+            <p className="text-[11px] text-slate-600 mt-1.5 text-right tabular-nums">
+              {subject.length} / 120
             </p>
+          </section>
+
+          {/* — Corpo HTML ─────────────────────────────────────────────────── */}
+          <section className="bg-slate-800/50 rounded-2xl border border-slate-700/60 p-4">
+            <div className="flex items-center justify-between mb-2.5">
+              <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest
+                             flex items-center gap-1.5">
+                <IonIcon name="code-slash-outline" size={12} className="text-slate-500" />
+                Corpo HTML
+              </h2>
+              <code className="text-[10px] bg-indigo-500/15 text-indigo-400
+                               border border-indigo-500/25 px-1.5 py-0.5 rounded-md font-mono">
+                {'{{nome}}'}
+              </code>
+            </div>
             <textarea
               value={html}
               onChange={e => setHtml(e.target.value)}
-              rows={10}
+              rows={13}
               spellCheck={false}
-              className="w-full bg-slate-900 text-slate-200 border border-slate-600 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+              placeholder="<p>Conteúdo do email em HTML…</p>"
+              className="w-full bg-slate-900/70 text-slate-200 border border-slate-700/70 rounded-xl
+                         px-3 py-2.5 text-xs font-mono placeholder-slate-600 resize-none
+                         focus:outline-none focus:ring-2 focus:ring-indigo-500/40
+                         focus:border-indigo-500/50 transition-colors leading-relaxed"
             />
-          </div>
+          </section>
 
-          {/* Botões */}
-          <div className="flex gap-3 pt-1">
-            <button
-              onClick={() => setPreview(p => !p)}
-              className="flex-1 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
-            >
-              <IonIcon name={preview ? 'eye-off-outline' : 'eye-outline'} size={15} />
-              {preview ? 'Fechar preview' : 'Preview'}
-            </button>
-            <button
-              disabled={!subject.trim() || !html.trim() || sending}
-              onClick={() => setConfirm(true)}
-              className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
-            >
-              <IonIcon name={sending ? 'hourglass-outline' : 'send-outline'} size={15} />
-              {sending ? 'Enviando…' : 'Enviar'}
-            </button>
-          </div>
-
+          {/* — Feedback ───────────────────────────────────────────────────── */}
           {error && (
-            <div className="bg-red-900/40 border border-red-700 text-red-300 text-sm rounded-lg px-3 py-2 flex items-center gap-2">
-              <IonIcon name="close-circle-outline" size={16} /> {error}
+            <div className="bg-red-500/10 border border-red-500/25 text-red-400 text-sm
+                            rounded-xl px-3 py-2.5 flex items-center gap-2">
+              <IonIcon name="close-circle-outline" size={16} className="flex-shrink-0" />
+              {error}
             </div>
           )}
           {result && (
-            <div className={`rounded-lg px-3 py-2 text-sm flex items-start gap-2 ${result.errors.length === 0 ? 'bg-green-900/40 border border-green-700 text-green-300' : 'bg-yellow-900/40 border border-yellow-700 text-yellow-300'}`}>
-              <IonIcon name={result.errors.length === 0 ? 'checkmark-circle-outline' : 'warning-outline'} size={16} className="mt-0.5 shrink-0" />
+            <div className={`rounded-xl px-3 py-2.5 text-sm flex items-start gap-2 border ${
+              result.errors.length === 0
+                ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
+                : 'bg-amber-500/10 border-amber-500/25 text-amber-400'
+            }`}>
+              <IonIcon
+                name={result.errors.length === 0 ? 'checkmark-circle-outline' : 'warning-outline'}
+                size={16} className="mt-0.5 flex-shrink-0"
+              />
               <div>
-                Enviados: <strong>{result.sent}/{result.total}</strong>
+                <p className="font-semibold">
+                  Enviados: {result.sent} / {result.total}
+                </p>
                 {result.errors.length > 0 && (
-                  <ul className="mt-1 list-disc list-inside text-xs opacity-80">
-                    {result.errors.slice(0, 5).map((e, i) => <li key={i}>{e}</li>)}
-                    {result.errors.length > 5 && <li>…e mais {result.errors.length - 5} erros</li>}
+                  <ul className="mt-1 list-disc list-inside text-xs opacity-75 space-y-0.5">
+                    {result.errors.slice(0, 3).map((e, i) => <li key={i}>{e}</li>)}
+                    {result.errors.length > 3 && (
+                      <li>…e mais {result.errors.length - 3} erros</li>
+                    )}
                   </ul>
                 )}
               </div>
             </div>
           )}
+
+          {/* — Botão Enviar ───────────────────────────────────────────────── */}
+          <button
+            disabled={!canSend}
+            onClick={() => setConfirm(true)}
+            className="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98]
+                       disabled:opacity-35 disabled:cursor-not-allowed
+                       text-white font-bold py-3 rounded-2xl transition-all
+                       flex items-center justify-center gap-2 text-sm
+                       shadow-lg shadow-indigo-500/20"
+          >
+            {sending ? (
+              <><IonIcon name="hourglass-outline" size={16} /> Enviando…</>
+            ) : (
+              <>
+                <IonIcon name="send-outline" size={16} />
+                {isBroadcast
+                  ? `Enviar para todos (${allUsers.length})`
+                  : `Enviar para ${targetUser?.name ?? '…'}`}
+              </>
+            )}
+          </button>
         </div>
 
-        {/* Preview */}
-        <div className={`transition-opacity ${preview ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
-          <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden h-full min-h-[500px] flex flex-col">
-            <div className="px-4 py-3 border-b border-slate-700 flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-500" />
-              <div className="w-3 h-3 rounded-full bg-yellow-400" />
-              <div className="w-3 h-3 rounded-full bg-green-500" />
-              <span className="text-xs text-slate-400 ml-2">Preview do email</span>
+        {/* ══ Coluna direita: Preview ao vivo ══════════════════════════════ */}
+        <div className="flex-1 min-w-0 flex flex-col min-h-0">
+          <div className="bg-slate-800/50 rounded-2xl border border-slate-700/60
+                          overflow-hidden flex flex-col flex-1 min-h-0">
+
+            {/* Chrome de email-client fake */}
+            <div className="px-4 py-3 border-b border-slate-700/60 bg-slate-800/70 flex-shrink-0">
+              <div className="flex items-center gap-1.5 mb-3">
+                <div className="w-3 h-3 rounded-full bg-red-500/60" />
+                <div className="w-3 h-3 rounded-full bg-amber-400/60" />
+                <div className="w-3 h-3 rounded-full bg-green-500/60" />
+                <span className="text-[11px] text-slate-500 ml-2 font-medium tracking-wide select-none">
+                  Preview — exatamente como o usuário receberá
+                </span>
+              </div>
+              <div className="space-y-1">
+                {[
+                  { label: 'De',      value: 'MEX App <noreply@mex.app.br>',   hi: false },
+                  { label: 'Para',    value: isBroadcast
+                      ? `${allUsers.length} destinatários`
+                      : (targetUser?.email ?? '—'),                            hi: false },
+                  { label: 'Assunto', value: subject || '(sem assunto)',        hi: true  },
+                ].map(row => (
+                  <div key={row.label} className="flex items-baseline gap-2 text-xs">
+                    <span className="w-14 text-right text-slate-600 font-medium flex-shrink-0">
+                      {row.label}:
+                    </span>
+                    <span className={`truncate ${row.hi ? 'text-slate-200 font-semibold' : 'text-slate-400'}`}>
+                      {row.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <iframe ref={iframeRef} title="Email preview" className="flex-1 w-full bg-white" sandbox="allow-same-origin" />
+
+            {/* Iframe — preview ao vivo */}
+            <iframe
+              ref={iframeRef}
+              title="Email preview"
+              className="flex-1 w-full"
+              style={{ background: '#eceaf8' }}
+              sandbox="allow-same-origin"
+            />
           </div>
         </div>
       </div>
 
-      {/* Confirm dialog */}
+      {/* ── Modal de confirmação ──────────────────────────────────────────── */}
       {confirm && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-slate-800 border border-slate-600 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <IonIcon name="mail-outline" size={18} /> Confirmar envio
-            </h2>
-            <p className="text-sm text-slate-300">
-              Enviar <strong className="text-white">"{subject}"</strong> para{' '}
-              <strong className="text-blue-400">{recipientLabel}</strong>.
-            </p>
-            <p className="text-xs text-slate-500">Esta ação não pode ser desfeita.</p>
-            <div className="flex gap-3 pt-1">
-              <button onClick={() => setConfirm(false)} className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                <IonIcon name="close-outline" size={15} /> Cancelar
+        <div className="fixed inset-0 bg-black/65 backdrop-blur-sm flex items-center
+                        justify-center z-50 p-4">
+          <div className="bg-slate-800 border border-slate-700/80 rounded-2xl p-6
+                          w-full max-w-md shadow-2xl shadow-black/40">
+
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-11 h-11 rounded-xl bg-indigo-500/15 border border-indigo-500/30
+                              flex items-center justify-center flex-shrink-0">
+                <IonIcon name="send-outline" size={20} className="text-indigo-400" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-white">Confirmar envio</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Esta ação não pode ser desfeita</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-900/60 rounded-xl border border-slate-700/60
+                            divide-y divide-slate-800 mb-4">
+              <div className="flex gap-3 px-4 py-2.5 text-sm">
+                <span className="text-slate-500 w-16 flex-shrink-0">Assunto</span>
+                <span className="text-white font-medium truncate">{subject}</span>
+              </div>
+              <div className="flex gap-3 px-4 py-2.5 text-sm">
+                <span className="text-slate-500 w-16 flex-shrink-0">Para</span>
+                <span className={`font-semibold truncate ${
+                  isBroadcast ? 'text-amber-400' : 'text-emerald-400'
+                }`}>
+                  {isBroadcast
+                    ? `Todos os usuários (${allUsers.length})`
+                    : `${targetUser?.name} <${targetUser?.email}>`}
+                </span>
+              </div>
+            </div>
+
+            {isBroadcast && (
+              <div className="bg-amber-500/8 border border-amber-500/25 rounded-xl
+                              px-3.5 py-3 mb-4 flex items-start gap-2.5">
+                <IonIcon name="warning-outline" size={16}
+                  className="text-amber-400 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-amber-300/90 leading-relaxed">
+                  Você está enviando para{' '}
+                  <strong className="text-amber-300">
+                    todos os {allUsers.length} usuários ativos
+                  </strong>.{' '}
+                  Revise bem o conteúdo antes de confirmar.
+                </p>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirm(false)}
+                className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2.5
+                           rounded-xl text-sm font-medium transition-colors"
+              >
+                Cancelar
               </button>
-              <button onClick={handleSend} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-                <IonIcon name="send-outline" size={15} /> Enviar agora
+              <button
+                onClick={handleSend}
+                className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-2.5
+                           rounded-xl text-sm font-bold transition-all
+                           flex items-center justify-center gap-2
+                           shadow-md shadow-indigo-500/25"
+              >
+                <IonIcon name="send-outline" size={15} />
+                Enviar agora
               </button>
             </div>
           </div>
@@ -473,3 +644,4 @@ export function EmailPage() {
     </div>
   )
 }
+

@@ -280,3 +280,18 @@ export async function apiAdminSharedCredentials() {
     '/admin/security/duplicates'
   )
 }
+
+// ── Admin: Email broadcast ────────────────────────────────────────────────────
+export interface SendAdminEmailPayload {
+  user_id?: string   // omit = broadcast to all
+  subject: string
+  html: string
+  text: string
+}
+
+export async function apiAdminSendEmail(payload: SendAdminEmailPayload) {
+  return request<{ success: boolean; sent: number; total: number; errors: string[] }>(
+    '/admin/email/send',
+    { method: 'POST', body: JSON.stringify(payload) }
+  )
+}

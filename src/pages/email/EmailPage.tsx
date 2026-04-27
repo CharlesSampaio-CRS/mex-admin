@@ -9,14 +9,103 @@ import { IonIcon } from '@/components/ui/IonIcon'
 
 // ─── Assuntos predefinidos ────────────────────────────────────────────────────
 const SUBJECT_PRESETS = [
-  { icon: 'megaphone-outline',         label: 'Informações importantes', value: 'Informações importantes sobre o MEX' },
-  { icon: 'rocket-outline',            label: 'Novidades do MEX',        value: 'Novidades do MEX — confira o que há de novo!' },
-  { icon: 'phone-portrait-outline',    label: 'Atualização do app',      value: 'Nova versão do MEX disponível' },
-  { icon: 'star-outline',              label: 'Oferta especial',         value: 'Oferta especial para você — MEX Pro' },
-  { icon: 'shield-checkmark-outline',  label: 'Aviso de segurança',      value: 'Aviso de segurança — ação necessária' },
-  { icon: 'bulb-outline',              label: 'Dica de uso',             value: 'Dica: sabia que você pode fazer isso no MEX?' },
-  { icon: 'bar-chart-outline',         label: 'Relatório mensal',        value: 'Seu resumo mensal no MEX' },
-  { icon: 'create-outline',            label: 'Personalizado…',          value: '__custom__' },
+  {
+    icon: 'megaphone-outline',
+    label: 'Informações importantes',
+    value: 'Informações importantes sobre o MEX',
+    body: `<p>Olá <strong>{{nome}}</strong>,</p>
+<p>Temos uma informação importante para compartilhar com você.</p>
+<p>[Escreva aqui o conteúdo da mensagem]</p>
+<p>Qualquer dúvida, entre em contato pelo suporte dentro do app.</p>
+<p>Atenciosamente,<br/><strong>Equipe MEX</strong></p>`,
+  },
+  {
+    icon: 'rocket-outline',
+    label: 'Novidades do MEX',
+    value: 'Novidades do MEX — confira o que há de novo!',
+    body: `<p>Olá <strong>{{nome}}</strong>,</p>
+<p>Temos novidades incríveis para você! Confira o que acabamos de lançar:</p>
+<ul>
+  <li>✅ [Nova funcionalidade 1]</li>
+  <li>✅ [Nova funcionalidade 2]</li>
+  <li>✅ [Melhoria 3]</li>
+</ul>
+<p>Abra o MEX agora e explore tudo isso!</p>
+<p>Até mais,<br/><strong>Equipe MEX</strong></p>`,
+  },
+  {
+    icon: 'phone-portrait-outline',
+    label: 'Atualização do app',
+    value: 'Nova versão do MEX disponível',
+    body: `<p>Olá <strong>{{nome}}</strong>,</p>
+<p>Uma nova versão do MEX já está disponível na loja! Atualize agora para aproveitar as melhorias:</p>
+<ul>
+  <li>🔧 Correções de estabilidade</li>
+  <li>⚡ Melhor desempenho</li>
+  <li>✨ [Novidade da versão]</li>
+</ul>
+<p>Acesse a App Store ou Google Play e atualize o app.</p>
+<p>Abraços,<br/><strong>Equipe MEX</strong></p>`,
+  },
+  {
+    icon: 'star-outline',
+    label: 'Oferta especial',
+    value: 'Oferta especial para você — MEX Pro',
+    body: `<p>Olá <strong>{{nome}}</strong>,</p>
+<p>Preparamos uma oferta exclusiva especialmente para você!</p>
+<p><strong>🎁 [Descrição da oferta]</strong></p>
+<p>Essa condição é por tempo limitado. Não perca!</p>
+<p>Qualquer dúvida, estamos à disposição pelo suporte dentro do app.</p>
+<p>Abraços,<br/><strong>Equipe MEX</strong></p>`,
+  },
+  {
+    icon: 'shield-checkmark-outline',
+    label: 'Aviso de segurança',
+    value: 'Aviso de segurança — ação necessária',
+    body: `<p>Olá <strong>{{nome}}</strong>,</p>
+<p>Identificamos uma situação que requer a sua atenção em relação à segurança da sua conta.</p>
+<p><strong>[Descreva o aviso de segurança aqui]</strong></p>
+<p>Recomendamos que você:</p>
+<ul>
+  <li>🔒 Verifique os acessos recentes na sua conta</li>
+  <li>🔑 Atualize sua senha se necessário</li>
+  <li>📱 Confirme que apenas seus dispositivos têm acesso</li>
+</ul>
+<p>Em caso de dúvidas, entre em contato com o suporte imediatamente.</p>
+<p>Atenciosamente,<br/><strong>Equipe de Segurança MEX</strong></p>`,
+  },
+  {
+    icon: 'bulb-outline',
+    label: 'Dica de uso',
+    value: 'Dica: sabia que você pode fazer isso no MEX?',
+    body: `<p>Olá <strong>{{nome}}</strong>,</p>
+<p>Sabia que o MEX tem uma funcionalidade que pode facilitar muito sua vida?</p>
+<p><strong>💡 [Nome da dica]</strong></p>
+<p>[Explique como usar a funcionalidade em 2-3 frases simples]</p>
+<p>Abra o MEX e experimente agora mesmo!</p>
+<p>Abraços,<br/><strong>Equipe MEX</strong></p>`,
+  },
+  {
+    icon: 'bar-chart-outline',
+    label: 'Relatório mensal',
+    value: 'Seu resumo mensal no MEX',
+    body: `<p>Olá <strong>{{nome}}</strong>,</p>
+<p>Confira o resumo da sua atividade no MEX este mês:</p>
+<ul>
+  <li>📊 Exchanges conectadas: [N]</li>
+  <li>💰 Saldo total monitorado: [valor]</li>
+  <li>🔔 Alertas disparados: [N]</li>
+</ul>
+<p>Continue acompanhando seus ativos com o MEX!</p>
+<p>Abraços,<br/><strong>Equipe MEX</strong></p>`,
+  },
+  {
+    icon: 'create-outline',
+    label: 'Personalizado…',
+    value: '__custom__',
+    body: `<p>Olá <strong>{{nome}}</strong>,</p>
+<p></p>`,
+  },
 ]
 
 function htmlToText(html: string): string {
@@ -190,7 +279,7 @@ export function EmailPage() {
               {SUBJECT_PRESETS.map(p => (
                 <button
                   key={p.value}
-                  onClick={() => { setSubjectPreset(p.value); if (p.value !== '__custom__') setSubject(p.value); else setSubject('') }}
+                  onClick={() => { setSubjectPreset(p.value); if (p.value !== '__custom__') setSubject(p.value); else setSubject(''); setHtml(p.body) }}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left ${
                     subjectPreset === p.value
                       ? 'bg-blue-600/40 border border-blue-500 text-blue-200'

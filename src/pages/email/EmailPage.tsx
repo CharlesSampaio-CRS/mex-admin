@@ -116,23 +116,86 @@ function htmlToText(html: string): string {
 }
 
 const LOGO_URL = '/admin/icons/icon.png'
+const ACCENT   = '#7c6af7'
+
+/**
+ * Preview fiel ao template Rust: fundo claro #f4f4f8, card branco, barra de
+ * acento, logo via URL local (no email real o Rust usa cid:mex-logo).
+ */
 function wrapInEmailTemplate(subject: string, html: string) {
-  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/>
-<style>
-body{margin:0;padding:0;background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#e2e8f0}
-.wrap{max-width:580px;margin:0 auto;padding:32px 16px}
-.card{background:#1e293b;border-radius:16px;overflow:hidden;border:1px solid #334155}
-.header{background:linear-gradient(135deg,#1e3a5f 0%,#0f2952 100%);padding:32px 24px;text-align:center}
-.logo{width:72px;height:72px;border-radius:16px;margin-bottom:12px;display:block;margin-left:auto;margin-right:auto}
-.title{color:#fff;font-size:22px;font-weight:700;margin:0}
-.body{padding:28px 24px;color:#cbd5e1;font-size:15px;line-height:1.7}
-.footer{padding:16px 24px;text-align:center;color:#475569;font-size:12px;border-top:1px solid #334155}
-</style></head><body>
-<div class="wrap"><div class="card">
-<div class="header"><img src="${LOGO_URL}" class="logo" alt="MEX"/><p class="title">${subject || '(sem assunto)'}</p></div>
-<div class="body">${html || '<p>…</p>'}</div>
-<div class="footer">MEX · <a href="https://mex.app.br" style="color:#3b82f6">mex.app.br</a></div>
-</div></div></body></html>`
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>${subject || '(sem assunto)'}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f4f8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f8;">
+  <tr>
+    <td align="center" style="padding:40px 16px 56px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;">
+
+        <!-- Logo -->
+        <tr>
+          <td align="center" style="padding-bottom:24px;">
+            <a href="https://mex.app.br" style="text-decoration:none;display:block;">
+              <img src="${LOGO_URL}" width="72" height="72" alt="Mex App"
+                style="display:block;border-radius:18px;margin:0 auto;border:0;">
+            </a>
+          </td>
+        </tr>
+
+        <!-- Card -->
+        <tr>
+          <td style="background:#ffffff;border-radius:16px;border:1px solid #e8e8f0;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.07);">
+
+            <!-- Barra de acento -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr><td style="height:4px;background:${ACCENT};font-size:0;line-height:0;">&nbsp;</td></tr>
+            </table>
+
+            <!-- Cabeçalho -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="padding:30px 36px 20px;border-bottom:1px solid #f0f0f6;">
+                  <p style="margin:0 0 5px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${ACCENT};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Mensagem do MEX</p>
+                  <h1 style="margin:0;font-size:22px;font-weight:700;color:#1a1a2e;line-height:1.3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">${subject || '(sem assunto)'}</h1>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Corpo -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="padding:28px 36px 32px;font-size:15px;line-height:1.7;color:#64648a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+                  ${html || '<p>…</p>'}
+                </td>
+              </tr>
+            </table>
+
+            <!-- Rodapé -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="padding:18px 36px 24px;border-top:1px solid #f0f0f6;">
+                  <p style="margin:0 0 4px;font-size:12px;color:#a0a0bc;text-align:center;line-height:1.6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+                    Mex App &nbsp;·&nbsp; Este é um e-mail automático — não responda.
+                  </p>
+                  <p style="margin:0;font-size:11px;color:#c8c8dc;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+                    © 2026 Mex App. Todos os direitos reservados.
+                  </p>
+                </td>
+              </tr>
+            </table>
+
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>`
 }
 
 export function EmailPage() {
@@ -183,8 +246,9 @@ export function EmailPage() {
       : html
     const payload: SendAdminEmailPayload = {
       subject: subject.trim(),
-      // Envia o HTML completo com o wrapper visual do template
-      html: wrapInEmailTemplate(subject.trim(), finalHtml),
+      // Envia apenas o corpo — o backend envolve com email_header() / email_footer()
+      // (mesmo template usado em OTP, welcome, etc.), garantindo logo e design padronizados.
+      html: finalHtml,
       text: htmlToText(finalHtml),
       ...(targetId ? { user_id: targetId } : {}),
     }

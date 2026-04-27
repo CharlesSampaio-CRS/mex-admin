@@ -173,9 +173,13 @@ export function Layout({ children }: { children: ReactNode }) {
           <NotificationsPanel />
           <button
             onClick={toggle}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-fore hover:text-foreground hover:bg-muted transition-colors"
+            className="group w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted transition-colors"
           >
-            <IonIcon name={theme === 'dark' ? 'sunny-outline' : 'moon-outline'} size={16} />
+            <IonIcon
+              name={theme === 'dark' ? 'sunny-outline' : 'moon-outline'}
+              size={16}
+              className="text-muted-fore group-hover:text-foreground transition-colors"
+            />
           </button>
         </header>
 

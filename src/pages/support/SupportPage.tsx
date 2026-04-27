@@ -48,6 +48,8 @@ export function SupportPage() {
   const [updating,    setUpdating]    = useState(false)
   const scrollRef    = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  // Conta comentários do ticket aberto — detecta novas mensagens no polling rápido
+  const commentCountRef = useRef<number>(0)
 
   const filtered = tickets.filter(t => {
     const matchStatus = !filter || t.status === filter
@@ -73,11 +75,38 @@ export function SupportPage() {
     refresh()
   }, [load, refresh])
 
-  // Polling local de 30s (o contexto já faz o polling para notificações)
+  // Polling da lista a cada 30s
   useEffect(() => {
     const interval = setInterval(load, 30_000)
     return () => clearInterval(interval)
   }, [load])
+
+  // ── Polling rápido do chat aberto (5s) ───────────────────────────────────
+  // Atualiza silenciosamente só o ticket selecionado, sem mexer na lista
+  useEffect(() => {
+    if (!selected) return
+    // Inicializa o contador de comments ao abrir o ticket
+    commentCountRef.current = selected.comments?.length ?? 0
+
+    const id = setInterval(async () => {
+      try {
+        const d = await apiAdminGetTicket(selected.id)
+        const newCount = d.ticket.comments?.length ?? 0
+        const hasNew   = newCount > commentCountRef.current
+
+        setSelected(prev =>
+          prev && d.ticket.updated_at !== prev.updated_at ? d.ticket : prev
+        )
+
+        // Auto-scroll só quando chegou mensagem nova do usuário
+        if (hasNew) {
+          commentCountRef.current = newCount
+          setTimeout(() => scrollRef.current?.scrollTo({ top: 99999, behavior: 'smooth' }), 80)
+        }
+      } catch { /* silencioso */ }
+    }, 5_000)
+    return () => clearInterval(id)
+  }, [selected?.id]) // recria apenas quando muda de ticket
 
   // Deep-link via navigate('/support', { state: { openTicketId } })
   // Usado pelo NotificationsPanel ao clicar numa notificação

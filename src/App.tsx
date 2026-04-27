@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
+import { NotificationsProvider } from '@/contexts/NotificationsContext'
 import { Layout } from '@/components/Layout'
 import { LoginPage } from '@/pages/LoginPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
@@ -17,7 +18,8 @@ function RequireAdmin({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isAdmin } = useAuth()
   if (!isAuthenticated) return <Navigate to="/login" replace />
   if (!isAdmin) return <Navigate to="/login" replace />
-  return <>{children}</>
+  // NotificationsProvider only mounts after auth is confirmed — no pre-auth API calls
+  return <NotificationsProvider>{children}</NotificationsProvider>
 }
 
 export default function App() {

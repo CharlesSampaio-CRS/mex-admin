@@ -53,14 +53,16 @@ export function NotificationsPanel() {
       {/* ── Botão sininho ─────────────────────────────────────────────── */}
       <button
         onClick={handleOpen}
-        className="relative w-8 h-8 flex items-center justify-center rounded-lg
-                   text-muted-fore hover:text-foreground hover:bg-muted transition-colors"
+        className="group relative w-8 h-8 flex items-center justify-center rounded-lg
+                   hover:bg-muted transition-colors"
         title="Notificações de suporte"
       >
         <IonIcon
           name={open ? 'notifications' : 'notifications-outline'}
           size={17}
-          className={unreadCount > 0 ? 'text-amber-400' : ''}
+          className={unreadCount > 0
+            ? 'text-amber-400'
+            : 'text-muted-fore group-hover:text-foreground transition-colors'}
         />
 
         {/* Badge */}

@@ -45,7 +45,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (res.status === 401) {
     clearToken()
-    window.location.reload()
+    // Redirect to login only if not already there (avoids reload loop)
+    if (!window.location.pathname.includes('/login')) {
+      window.location.assign(window.location.origin + '/admin/login')
+    }
     throw new Error('Unauthorized')
   }
 

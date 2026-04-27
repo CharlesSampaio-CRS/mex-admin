@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useNotifications } from '@/contexts/NotificationsContext'
 import { cn } from '@/lib/utils'
 import { IonIcon } from '@/components/ui/IonIcon'
+import { NotificationsPanel } from '@/components/NotificationsPanel'
 import type { ReactNode } from 'react'
 
 const NAV = [
@@ -19,9 +21,10 @@ const NAV = [
 ]
 
 export function Layout({ children }: { children: ReactNode }) {
-  const { user, logout } = useAuth()
-  const { theme, toggle } = useTheme()
-  const navigate = useNavigate()
+  const { user, logout }   = useAuth()
+  const { theme, toggle }  = useTheme()
+  const { unreadCount }    = useNotifications()
+  const navigate           = useNavigate()
   const [open,      setOpen]      = useState(false)
   const [collapsed, setCollapsed] = useState(false)
 
@@ -87,8 +90,25 @@ export function Layout({ children }: { children: ReactNode }) {
                   : 'text-muted-fore hover:text-foreground hover:bg-muted'
               )}
             >
-              <IonIcon name={icon} size={15} className="shrink-0" />
+              <span className="relative shrink-0">
+                <IonIcon name={icon} size={15} />
+                {/* Badge de não-lidos — apenas no item Suporte */}
+                {to === '/support' && unreadCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 px-0.5
+                                   bg-red-500 text-white text-[9px] font-bold rounded-full
+                                   flex items-center justify-center leading-none">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </span>
               {!collapsed && <span className="flex-1 whitespace-nowrap">{label}</span>}
+              {/* Contador textual no modo expandido */}
+              {!collapsed && to === '/support' && unreadCount > 0 && (
+                <span className="ml-auto bg-red-500 text-white text-[9px] font-bold
+                                 px-1.5 py-0.5 rounded-full leading-none">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </NavLink>
           ))}
 
@@ -150,6 +170,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <IonIcon name="menu-outline" size={20} />
           </button>
           <div className="flex-1" />
+          <NotificationsPanel />
           <button
             onClick={toggle}
             className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-fore hover:text-foreground hover:bg-muted transition-colors"

@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { apiAdminListTickets, apiAdminGetTicket, apiAdminReplyTicket, apiAdminUpdateStatus } from '@/lib/api'
 import { formatDate, formatRelative, statusColor, statusLabel, cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
+import { useNotifications } from '@/contexts/NotificationsContext'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -29,24 +31,11 @@ function slaInfo(ticket: SupportTicket): { label: string; color: string } | null
   return                            { label: `SLA: ${Math.floor(hours)}h`,       color: 'bg-success/10 text-success' }
 }
 
-function playNotification() {
-  try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.connect(gain)
-    gain.connect(ctx.destination)
-    osc.frequency.value = 880
-    osc.type = 'sine'
-    gain.gain.setValueAtTime(0.3, ctx.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4)
-    osc.start(ctx.currentTime)
-    osc.stop(ctx.currentTime + 0.4)
-  } catch { /* ignore */ }
-}
-
 export function SupportPage() {
-  const { user } = useAuth()
+  const { user }     = useAuth()
+  const { refresh }  = useNotifications()
+  const location     = useLocation()
+
   const [tickets,     setTickets]     = useState<SupportTicket[]>([])
   const [selected,    setSelected]    = useState<SupportTicket | null>(null)
   const [filter,      setFilter]      = useState('')
@@ -59,7 +48,6 @@ export function SupportPage() {
   const [updating,    setUpdating]    = useState(false)
   const scrollRef    = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const prevCountRef = useRef<number>(0)
 
   const filtered = tickets.filter(t => {
     const matchStatus = !filter || t.status === filter
@@ -74,23 +62,34 @@ export function SupportPage() {
     setLoading(true)
     try {
       const d = await apiAdminListTickets(filter)
-      const newTickets: SupportTicket[] = d.tickets
-      const openCount = newTickets.filter(t => t.status === 'open').length
-      if (prevCountRef.current > 0 && openCount > prevCountRef.current) {
-        playNotification()
-      }
-      prevCountRef.current = openCount
-      setTickets(newTickets)
+      setTickets(d.tickets)
     } catch (e) { console.error(e) }
     finally { setLoading(false) }
   }, [filter])
 
-  useEffect(() => { load() }, [load])
+  // Carrega tickets e força refresh do contexto de notificações ao entrar na página
+  useEffect(() => {
+    load()
+    refresh()
+  }, [load, refresh])
 
+  // Polling local de 30s (o contexto já faz o polling para notificações)
   useEffect(() => {
     const interval = setInterval(load, 30_000)
     return () => clearInterval(interval)
   }, [load])
+
+  // Deep-link via navigate('/support', { state: { openTicketId } })
+  // Usado pelo NotificationsPanel ao clicar numa notificação
+  useEffect(() => {
+    const state = location.state as { openTicketId?: string } | null
+    if (!state?.openTicketId || tickets.length === 0) return
+    const t = tickets.find(x => x.id === state.openTicketId)
+    if (t) openTicket(t)
+    // Limpa o state para não reabrir ao recarregar
+    window.history.replaceState({}, '')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state, tickets])
 
   const openTicket = async (t: SupportTicket) => {
     setSelected(t)

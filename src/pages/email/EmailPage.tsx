@@ -9,15 +9,14 @@ import { IonIcon } from '@/components/ui/IonIcon'
 
 // ─── Assuntos predefinidos ────────────────────────────────────────────────────
 const SUBJECT_PRESETS = [
-  { label: 'Selecione um assunto…',      value: '' },
-  { label: '📢 Informações importantes', value: 'Informações importantes sobre o MEX' },
-  { label: '🚀 Novidades do MEX',        value: 'Novidades do MEX — confira o que há de novo!' },
-  { label: '🔔 Atualização do app',      value: 'Nova versão do MEX disponível' },
-  { label: '⭐ Oferta especial',         value: 'Oferta especial para você — MEX Pro' },
-  { label: '🛡️ Aviso de segurança',     value: 'Aviso de segurança — ação necessária' },
-  { label: '💡 Dica de uso',             value: 'Dica: sabia que você pode fazer isso no MEX?' },
-  { label: '📊 Relatório mensal',        value: 'Seu resumo mensal no MEX' },
-  { label: '✉️ Personalizado…',         value: '__custom__' },
+  { icon: 'megaphone-outline',         label: 'Informações importantes', value: 'Informações importantes sobre o MEX' },
+  { icon: 'rocket-outline',            label: 'Novidades do MEX',        value: 'Novidades do MEX — confira o que há de novo!' },
+  { icon: 'phone-portrait-outline',    label: 'Atualização do app',      value: 'Nova versão do MEX disponível' },
+  { icon: 'star-outline',              label: 'Oferta especial',         value: 'Oferta especial para você — MEX Pro' },
+  { icon: 'shield-checkmark-outline',  label: 'Aviso de segurança',      value: 'Aviso de segurança — ação necessária' },
+  { icon: 'bulb-outline',              label: 'Dica de uso',             value: 'Dica: sabia que você pode fazer isso no MEX?' },
+  { icon: 'bar-chart-outline',         label: 'Relatório mensal',        value: 'Seu resumo mensal no MEX' },
+  { icon: 'create-outline',            label: 'Personalizado…',          value: '__custom__' },
 ]
 
 function htmlToText(html: string): string {
@@ -87,12 +86,6 @@ export function EmailPage() {
     ? `${targetUser?.name ?? 'Usuário'} <${targetUser?.email ?? targetId}>`
     : `Todos os usuários (${allUsers.length})`
 
-  function handlePresetChange(val: string) {
-    setSubjectPreset(val)
-    if (val && val !== '__custom__') setSubject(val)
-    if (val === '__custom__') setSubject('')
-  }
-
   async function handleSend() {
     setConfirm(false); setError(''); setResult(null); setSending(true)
     const payload: SendAdminEmailPayload = {
@@ -149,19 +142,41 @@ export function EmailPage() {
                 <IonIcon name="hourglass-outline" size={14} /> Carregando usuários…
               </div>
             ) : (
-              <select
-                value={targetId}
-                onChange={e => setTargetId(e.target.value)}
-                size={5}
-                className="w-full bg-slate-900 text-white border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">📣 Broadcast — todos ({allUsers.length})</option>
-                {filteredUsers.map(u => (
-                  <option key={u.user_id} value={u.user_id}>{u.name} — {u.email}</option>
-                ))}
-              </select>
+              <div className="border border-slate-600 rounded-lg overflow-hidden max-h-44 overflow-y-auto bg-slate-900">
+                {/* Opção broadcast */}
+                <button
+                  onClick={() => setTargetId('')}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors border-b border-slate-700 ${
+                    targetId === '' ? 'bg-blue-600/30 text-blue-300' : 'text-slate-300 hover:bg-slate-800'
+                  }`}
+                >
+                  <IonIcon name="radio-outline" size={16} className="shrink-0 text-blue-400" />
+                  <span className="font-medium">Broadcast — todos ({allUsers.length})</span>
+                </button>
+                {/* Lista de usuários */}
+                {filteredUsers.length === 0 ? (
+                  <div className="px-3 py-3 text-slate-500 text-sm flex items-center gap-2">
+                    <IonIcon name="search-outline" size={14} /> Nenhum usuário encontrado
+                  </div>
+                ) : (
+                  filteredUsers.map(u => (
+                    <button
+                      key={u.user_id}
+                      onClick={() => setTargetId(u.user_id)}
+                      className={`w-full flex items-center gap-3 px-3 py-2 text-sm transition-colors border-b border-slate-800 last:border-0 ${
+                        targetId === u.user_id ? 'bg-blue-600/30 text-blue-300' : 'text-slate-300 hover:bg-slate-800'
+                      }`}
+                    >
+                      <IonIcon name="person-outline" size={14} className="shrink-0 text-slate-500" />
+                      <span className="truncate font-medium">{u.name}</span>
+                      <span className="text-slate-500 text-xs truncate ml-auto">{u.email}</span>
+                      {targetId === u.user_id && <IonIcon name="checkmark-outline" size={14} className="shrink-0 text-blue-400" />}
+                    </button>
+                  ))
+                )}
+              </div>
             )}
-            <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+            <p className="text-xs text-slate-500 mt-1.5 flex items-center gap-1">
               <IonIcon name="arrow-forward-outline" size={11} />
               {recipientLabel}
             </p>
@@ -170,20 +185,29 @@ export function EmailPage() {
           {/* Assunto */}
           <div>
             <label className="block text-xs font-semibold text-slate-400 uppercase mb-1">Assunto</label>
-            <select
-              value={subjectPreset}
-              onChange={e => handlePresetChange(e.target.value)}
-              className="w-full bg-slate-900 text-white border border-slate-600 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
+            {/* Grid de presets */}
+            <div className="grid grid-cols-2 gap-1.5 mb-2">
               {SUBJECT_PRESETS.map(p => (
-                <option key={p.value} value={p.value}>{p.label}</option>
+                <button
+                  key={p.value}
+                  onClick={() => { setSubjectPreset(p.value); if (p.value !== '__custom__') setSubject(p.value); else setSubject('') }}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left ${
+                    subjectPreset === p.value
+                      ? 'bg-blue-600/40 border border-blue-500 text-blue-200'
+                      : 'bg-slate-900 border border-slate-700 text-slate-400 hover:border-slate-500 hover:text-white'
+                  }`}
+                >
+                  <IonIcon name={p.icon} size={13} className="shrink-0" />
+                  <span className="truncate">{p.label}</span>
+                </button>
               ))}
-            </select>
+            </div>
+            {/* Campo livre */}
             <input
               type="text"
               value={subject}
               onChange={e => setSubject(e.target.value)}
-              placeholder="Ou escreva um assunto personalizado…"
+              placeholder="Escreva ou edite o assunto…"
               className="w-full bg-slate-900 text-white border border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>

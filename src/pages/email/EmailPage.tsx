@@ -5,6 +5,7 @@ import {
   type SendAdminEmailPayload,
 } from '@/lib/api'
 import type { AdminUser } from '@/types'
+import { IonIcon } from '@/components/ui/IonIcon'
 
 // ─── Simple HTML → plain-text strip ──────────────────────────────────────────
 function htmlToText(html: string): string {
@@ -125,7 +126,8 @@ export function EmailPage() {
       {/* Header */}
       <div>
         <h1 className="text-xl font-bold text-white flex items-center gap-2">
-          <span>📧</span> Enviar Email
+          <IonIcon name="mail-outline" size={22} />
+          Enviar Email
         </h1>
         <p className="text-sm text-slate-400 mt-1">
           Compose e envie emails para usuários específicos ou para toda a base.
@@ -195,34 +197,40 @@ export function EmailPage() {
           <div className="flex items-center gap-3 pt-1">
             <button
               onClick={() => setPreview(p => !p)}
-              className="flex-1 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium py-2 rounded-lg transition-colors"
+              className="flex-1 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
             >
-              {preview ? 'Fechar preview' : '👁 Preview'}
+              <IonIcon name={preview ? 'eye-off-outline' : 'eye-outline'} size={15} />
+              {preview ? 'Fechar preview' : 'Preview'}
             </button>
             <button
               disabled={!subject.trim() || !html.trim() || sending}
               onClick={() => setConfirm(true)}
-              className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold py-2 rounded-lg transition-colors"
+              className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
             >
-              {sending ? 'Enviando…' : '📤 Enviar'}
+              <IonIcon name={sending ? 'hourglass-outline' : 'send-outline'} size={15} />
+              {sending ? 'Enviando…' : 'Enviar'}
             </button>
           </div>
 
           {/* Feedback */}
           {error && (
-            <div className="bg-red-900/40 border border-red-700 text-red-300 text-sm rounded-lg px-3 py-2">
-              ❌ {error}
+            <div className="bg-red-900/40 border border-red-700 text-red-300 text-sm rounded-lg px-3 py-2 flex items-center gap-2">
+              <IonIcon name="close-circle-outline" size={16} />
+              {error}
             </div>
           )}
           {result && (
-            <div className={`rounded-lg px-3 py-2 text-sm ${result.errors.length === 0 ? 'bg-green-900/40 border border-green-700 text-green-300' : 'bg-yellow-900/40 border border-yellow-700 text-yellow-300'}`}>
-              ✅ Enviados: <strong>{result.sent}/{result.total}</strong>
-              {result.errors.length > 0 && (
-                <ul className="mt-1 list-disc list-inside text-xs opacity-80">
-                  {result.errors.slice(0, 5).map((e, i) => <li key={i}>{e}</li>)}
-                  {result.errors.length > 5 && <li>…e mais {result.errors.length - 5} erros</li>}
-                </ul>
-              )}
+            <div className={`rounded-lg px-3 py-2 text-sm flex items-start gap-2 ${result.errors.length === 0 ? 'bg-green-900/40 border border-green-700 text-green-300' : 'bg-yellow-900/40 border border-yellow-700 text-yellow-300'}`}>
+              <IonIcon name={result.errors.length === 0 ? 'checkmark-circle-outline' : 'warning-outline'} size={16} className="mt-0.5 shrink-0" />
+              <div>
+                Enviados: <strong>{result.sent}/{result.total}</strong>
+                {result.errors.length > 0 && (
+                  <ul className="mt-1 list-disc list-inside text-xs opacity-80">
+                    {result.errors.slice(0, 5).map((e, i) => <li key={i}>{e}</li>)}
+                    {result.errors.length > 5 && <li>…e mais {result.errors.length - 5} erros</li>}
+                  </ul>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -250,7 +258,10 @@ export function EmailPage() {
       {confirm && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-800 border border-slate-600 rounded-2xl p-6 w-full max-w-sm shadow-2xl space-y-4">
-            <h2 className="text-lg font-bold text-white">Confirmar envio</h2>
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <IonIcon name="mail-outline" size={18} />
+              Confirmar envio
+            </h2>
             <p className="text-sm text-slate-300">
               Você está prestes a enviar o email{' '}
               <strong className="text-white">"{subject}"</strong> para{' '}
@@ -260,14 +271,16 @@ export function EmailPage() {
             <div className="flex gap-3 pt-1">
               <button
                 onClick={() => setConfirm(false)}
-                className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg text-sm font-medium transition-colors"
+                className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
               >
+                <IonIcon name="close-outline" size={15} />
                 Cancelar
               </button>
               <button
                 onClick={handleSend}
-                className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm font-semibold transition-colors"
+                className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
               >
+                <IonIcon name="send-outline" size={15} />
                 Enviar agora
               </button>
             </div>

@@ -10,6 +10,7 @@ import { ExchangesPage } from '@/pages/exchanges/ExchangesPage'
 import { JobsPage } from '@/pages/jobs/JobsPage'
 import { CostsPage } from '@/pages/costs/CostsPage'
 import { SettingsPage } from '@/pages/settings/SettingsPage'
+import { AppConfigPage } from '@/pages/appconfig/AppConfigPage'
 import { WebViewsPage } from '@/pages/webviews/WebViewsPage'
 import { SecurityPage } from '@/pages/security/SecurityPage'
 import { EmailPage } from '@/pages/email/EmailPage'
@@ -43,6 +44,7 @@ export default function App() {
                   <Route path="email" element={<EmailPage />} />
                   <Route path="webviews" element={<WebViewsPage />} />
                   <Route path="settings" element={<SettingsPage />} />
+                  <Route path="app-config" element={<AppConfigPage />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Layout>

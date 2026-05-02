@@ -298,3 +298,29 @@ export async function apiAdminSendEmail(payload: SendAdminEmailPayload) {
     { method: 'POST', body: JSON.stringify(payload) }
   )
 }
+
+// ── Admin: App Config / Feature Flags ─────────────────────────────────────────
+export interface FeatureFlags {
+  ai_chat_enabled:             boolean
+  price_alerts_enabled:        boolean
+  orders_enabled:              boolean
+  strategies_enabled:          boolean
+  pix_deposit_enabled:         boolean
+  support_attachments_enabled: boolean
+  registration_enabled:        boolean
+  maintenance_mode:            boolean
+  updated_at?: number
+  updated_by?: string
+}
+
+export async function apiGetAppConfig() {
+  return request<{ success: boolean; flags: FeatureFlags }>('/admin/app-config')
+}
+
+export async function apiPatchAppConfig(patch: Partial<FeatureFlags>) {
+  return request<{ success: boolean; flags: FeatureFlags }>(
+    '/admin/app-config',
+    { method: 'PATCH', body: JSON.stringify(patch) }
+  )
+}
+

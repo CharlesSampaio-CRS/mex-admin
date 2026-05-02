@@ -17,7 +17,8 @@ const NAV = [
   { to: '/costs',      icon: 'cash-outline',            label: 'Custos'                 },
   { to: '/security',   icon: 'shield-checkmark-outline', label: 'Segurança'             },
   { to: '/email',      icon: 'mail-outline',             label: 'Email'                 },
-  { to: '/settings',   icon: 'settings-outline',        label: 'Configurações'          },
+  { to: '/settings',    icon: 'settings-outline',        label: 'Configurações'          },
+  { to: '/app-config',  icon: 'toggle-outline',           label: 'Feature Flags'          },
 ]
 
 export function Layout({ children }: { children: ReactNode }) {

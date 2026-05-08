@@ -20,6 +20,16 @@ function duration(ms?: number) {
   return `${(ms / 1000).toFixed(1)}s`
 }
 
+const JOB_ICONS: Record<string, string> = {
+  snapshot:         'camera-outline',
+  cache_warmup:     'flash-outline',
+  markets_warmup:   'trending-up-outline',
+  strategy_monitor: 'analytics-outline',
+  balance_alert:    'wallet-outline',
+  chart_warmup:     'bar-chart-outline',
+  api_key_expiry:   'key-outline',
+}
+
 export function JobsPage() {
   const [jobs,       setJobs]       = useState<JobStatus[]>([])
   const [executions, setExecutions] = useState<JobExecution[]>([])
@@ -91,7 +101,10 @@ export function JobsPage() {
               )}
             >
               <div className="flex items-center justify-between mb-1">
-                <p className="text-sm font-semibold text-foreground">{job.name}</p>
+                <div className="flex items-center gap-1.5">
+                  <IonIcon name={(JOB_ICONS[job.job_id] ?? 'cog-outline') as any} size={14} className="text-primary shrink-0" />
+                  <p className="text-sm font-semibold text-foreground">{job.name}</p>
+                </div>
                 {statusBadge(job.status)}
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-fore">

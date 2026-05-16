@@ -2,8 +2,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { NotificationsProvider } from '@/contexts/NotificationsContext'
 import { Layout } from '@/components/Layout'
-import { LoginPage } from '@/pages/LoginPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
+import Landing from '@/pages/Landing'
+import ConnectPage from '@/pages/ConnectPage'
 import { UsersPage } from '@/pages/users/UsersPage'
 import { SupportPage } from '@/pages/support/SupportPage'
 import { ExchangesPage } from '@/pages/exchanges/ExchangesPage'
@@ -27,30 +28,29 @@ export default function App() {
   return (
     <BrowserRouter basename="/admin">
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route
-          path="/*"
-          element={
-            <RequireAdmin>
-              <Layout>
-                <Routes>
-                  <Route index element={<DashboardPage />} />
-                  <Route path="users" element={<UsersPage />} />
-                  <Route path="support" element={<SupportPage />} />
-                  <Route path="exchanges" element={<ExchangesPage />} />
-                  <Route path="jobs" element={<JobsPage />} />
-                  <Route path="costs" element={<CostsPage />} />
-                  <Route path="security" element={<SecurityPage />} />
-                  <Route path="email" element={<EmailPage />} />
-                  <Route path="webviews" element={<WebViewsPage />} />
-                  <Route path="settings" element={<SettingsPage />} />
-                  <Route path="app-config" element={<AppConfigPage />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-              </Layout>
-            </RequireAdmin>
-          }
-        />
+        <Route path="/" element={<Landing />} />
+        <Route path="/connect" element={<ConnectPage />} />
+        <Route path="/admin/*" element={
+          <RequireAdmin>
+            <Layout>
+              <Routes>
+                <Route index element={<DashboardPage />} />
+                <Route path="users" element={<UsersPage />} />
+                <Route path="support" element={<SupportPage />} />
+                <Route path="exchanges" element={<ExchangesPage />} />
+                <Route path="jobs" element={<JobsPage />} />
+                <Route path="costs" element={<CostsPage />} />
+                <Route path="security" element={<SecurityPage />} />
+                <Route path="email" element={<EmailPage />} />
+                <Route path="webviews" element={<WebViewsPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+                <Route path="app-config" element={<AppConfigPage />} />
+                <Route path="*" element={<Navigate to="/admin" replace />} />
+              </Routes>
+            </Layout>
+          </RequireAdmin>
+        } />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   )

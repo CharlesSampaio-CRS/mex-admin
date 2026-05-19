@@ -3,8 +3,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import { NotificationsProvider } from '@/contexts/NotificationsContext'
 import { Layout } from '@/components/Layout'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
-import Landing from '@/pages/Landing'
-import ConnectPage from '@/pages/ConnectPage'
 import { UsersPage } from '@/pages/users/UsersPage'
 import { SupportPage } from '@/pages/support/SupportPage'
 import { ExchangesPage } from '@/pages/exchanges/ExchangesPage'
@@ -15,6 +13,7 @@ import { AppConfigPage } from '@/pages/appconfig/AppConfigPage'
 import { WebViewsPage } from '@/pages/webviews/WebViewsPage'
 import { SecurityPage } from '@/pages/security/SecurityPage'
 import { EmailPage } from '@/pages/email/EmailPage'
+import { LoginPage } from '@/pages/LoginPage'
 
 function RequireAdmin({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isAdmin } = useAuth()
@@ -28,8 +27,7 @@ export default function App() {
   return (
     <BrowserRouter basename="/admin">
       <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/connect" element={<ConnectPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/admin/*" element={
           <RequireAdmin>
             <Layout>
@@ -50,7 +48,7 @@ export default function App() {
             </Layout>
           </RequireAdmin>
         } />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>
     </BrowserRouter>
   )

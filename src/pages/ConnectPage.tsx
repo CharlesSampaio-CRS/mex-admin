@@ -1,3 +1,5 @@
+// Arquivo removido conforme solicitado em 18/05/2026.
+// Arquivo removido conforme solicitado em 18/05/2026.
 import React, { useState, useEffect, useRef } from "react";
 
 // Lista de exchanges (usando logos locais do admin)

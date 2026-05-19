@@ -1,3 +1,13 @@
+node_modules/
+dist/
+build/
+.env
+*.log
+secrets/
+.idea/
+.vscode/
+.DS_Store
+*.pem
 # Dependencies
 node_modules/
 

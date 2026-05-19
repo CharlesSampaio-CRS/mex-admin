@@ -5,8 +5,8 @@ set -e
 PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJ_DIR="$PROJECT_ROOT/.."
 
-EC2_INFO_FILE="$PROJECT_ROOT/ec2-info.txt"
-KEY_FILE="$PROJECT_ROOT/mex-admin-service-key.pem"
+EC2_INFO_FILE="$PROJECT_ROOT/../../deploy/ec2-info.txt"
+KEY_FILE="$(cd -- "$PROJECT_ROOT/../../secrets" && pwd)/mex-admin-service-key.pem"
 NGINX_CONF_LOCAL="../mex-landing/scripts/mex-landing.conf"
 NGINX_CONF_REMOTE="/etc/nginx/sites-available/mex-landing.conf"
 

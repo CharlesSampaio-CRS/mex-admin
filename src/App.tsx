@@ -28,7 +28,7 @@ export default function App() {
     <BrowserRouter basename="/admin">
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/admin/*" element={
+        <Route path="/*" element={
           <RequireAdmin>
             <Layout>
               <Routes>
@@ -43,12 +43,12 @@ export default function App() {
                 <Route path="webviews" element={<WebViewsPage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="app-config" element={<AppConfigPage />} />
-                <Route path="*" element={<Navigate to="/admin" replace />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Layout>
           </RequireAdmin>
         } />
-        <Route path="*" element={<Navigate to="/admin" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   )

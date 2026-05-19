@@ -33,18 +33,24 @@ echo -e "${YELLOW}▶ Instalando dependências...${NC}"
 echo -e "${YELLOW}▶ Buildando projeto...${NC}"
 (cd "$PROJ_DIR" && npm run build)
 
-# Garante que o diretório remoto existe e permissões para ubuntu
-ssh -i "$KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$SERVER_IP" "sudo mkdir -p /home/ubuntu/mex-admin/dist && sudo chown -R ubuntu:ubuntu /home/ubuntu/mex-admin/ && sudo chmod -R u+rwX /home/ubuntu/mex-admin/"
 
-# Envia todo o conteúdo de dist (incluindo subpastas)
+# Remove conteúdo antigo e garante permissões
+ssh -i "$KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$SERVER_IP" "sudo rm -rf /home/ubuntu/mex-admin/dist && sudo mkdir -p /home/ubuntu/mex-admin/dist && sudo chown -R ubuntu:ubuntu /home/ubuntu/mex-admin/ && sudo chmod -R u+rwX /home/ubuntu/mex-admin/"
+
 scp -i "$KEY_FILE" -o StrictHostKeyChecking=no -r "$PROJ_DIR/dist/"* ubuntu@"$SERVER_IP":/home/ubuntu/mex-admin/dist/
 if [ $? -ne 0 ]; then
   echo -e "${RED}❌ Falha ao enviar arquivos para o servidor.${NC}"
   exit 1
 fi
 
+
 # Corrige permissões dos arquivos do site para www-data e garante acesso do Nginx
-ssh -i "$KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$SERVER_IP" "sudo chown -R www-data:www-data /home/ubuntu/mex-admin/ && sudo chmod -R 755 /home/ubuntu/mex-admin/ && sudo chmod o+x /home/ubuntu && sudo chmod -R o+rx /home/ubuntu/mex-admin"
+ssh -i "$KEY_FILE" -o StrictHostKeyChecking=no ubuntu@"$SERVER_IP" "\
+  sudo chown -R www-data:www-data /home/ubuntu/mex-admin/ && \
+  sudo find /home/ubuntu/mex-admin/ -type d -exec chmod 755 {} \; && \
+  sudo find /home/ubuntu/mex-admin/ -type f -exec chmod 644 {} \; && \
+  sudo chmod o+x /home/ubuntu && \
+  sudo chmod -R o+rx /home/ubuntu/mex-admin"
 
 
 # Atualiza configuração do Nginx unificado

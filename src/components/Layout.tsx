@@ -54,11 +54,11 @@ export function Layout({ children }: { children: ReactNode }) {
               title="Expandir menu"
               onClick={() => setCollapsed(false)}
             >
-              <img src="/admin/icons/icon.png" alt="MEX" className="w-7 h-7 rounded-md object-cover" />
+              <img src={import.meta.env.BASE_URL + 'icons/icon.png'} alt="MEX" className="w-7 h-7 rounded-md object-cover" />
             </button>
           ) : (
             <>
-              <img src="/admin/icons/icon.png" alt="MEX" className="w-7 h-7 rounded-md object-cover shrink-0" />
+              <img src={import.meta.env.BASE_URL + 'icons/icon.png'} alt="MEX" className="w-7 h-7 rounded-md object-cover shrink-0" />
               <span className="font-semibold text-sm whitespace-nowrap flex-1">
                 MEX <span className="text-primary">Admin</span>
               </span>

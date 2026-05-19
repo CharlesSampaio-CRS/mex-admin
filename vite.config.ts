@@ -4,12 +4,12 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/admin',
+  base: '/admin/',
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },
   },
   build: {
-    outDir: '../trading-service/static/admin',
+    outDir: 'dist',
     emptyOutDir: true,
   },
   server: {

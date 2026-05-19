@@ -83,7 +83,7 @@ export function LoginPage() {
 
         {/* Logo */}
         <div className="flex items-center gap-3 mb-8 justify-center">
-          <img src="/assets/icons/icon.png" alt="MEX" className="w-10 h-10 rounded-xl object-cover" />
+          <img src="/admin/assets/icons/icon.png" alt="MEX" className="w-10 h-10 rounded-xl object-cover" />
           <span className="text-xl font-bold tracking-tight text-foreground">
             MEX <span className="text-primary">Admin</span>
           </span>

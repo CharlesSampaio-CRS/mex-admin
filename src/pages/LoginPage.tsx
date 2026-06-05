@@ -25,7 +25,11 @@ export function LoginPage() {
       const data = await apiLogin(email.trim(), password)
       if (saveEmail) localStorage.setItem('mex_admin_saved_email', email.trim())
       else           localStorage.removeItem('mex_admin_saved_email')
-      login(data.token, { email: email.trim(), name: email.trim(), roles: data.user.roles })
+      login(data.token, {
+        email: data.user.email ?? email.trim(),
+        name: data.user.name ?? email.trim(),
+        roles: data.user.roles,
+      })
       navigate('/')
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Erro ao entrar'
@@ -83,7 +87,7 @@ export function LoginPage() {
 
         {/* Logo */}
         <div className="flex items-center gap-3 mb-8 justify-center">
-          <img src="/admin/assets/icons/icon.png" alt="MEX" className="w-10 h-10 rounded-xl object-cover" />
+          <img src={`${import.meta.env.BASE_URL}assets/icons/icon.png`} alt="MEX" className="w-10 h-10 rounded-xl object-cover" />
           <span className="text-xl font-bold tracking-tight text-foreground">
             MEX <span className="text-primary">Admin</span>
           </span>

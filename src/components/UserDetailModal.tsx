@@ -3,7 +3,7 @@ import { formatDate, planColor, planLabel, cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { IonIcon } from '@/components/ui/IonIcon'
 import { ExchangeLogo } from '@/components/ui/ExchangeLogo'
-import { apiUpdateUserPlan, apiBlockUser, apiUnblockUser } from '@/lib/api'
+import { apiUpdateUserPlan, apiBlockUser, apiUnblockUser, apiDeleteUserAndData } from '@/lib/api'
 import type { AdminUser } from '@/types'
 
 const PLANS = ['free', 'pro', 'premium'] as const
@@ -59,6 +59,7 @@ export function UserDetailModal({ user, onClose, onUserUpdated }: Props) {
   const [planLoading, setPlanLoading] = useState(false)
   const [confirmBlockOpen, setConfirmBlockOpen] = useState(false)
   const [confirmUnblockOpen, setConfirmUnblockOpen] = useState(false)
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
   const [blockReason, setBlockReason] = useState('')
 
   const handlePlan = async (newPlan: string) => {
@@ -100,6 +101,20 @@ export function UserDetailModal({ user, onClose, onUserUpdated }: Props) {
       setConfirmUnblockOpen(false)
     } catch (e) { console.error(e) }
     finally { setLoading(false) }
+  }
+
+  const confirmDelete = async () => {
+    setLoading(true)
+    try {
+      await apiDeleteUserAndData(user.user_id)
+      setConfirmDeleteOpen(false)
+      onClose()
+      window.location.reload() // Atualiza todas as telas após exclusão
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const isActive = user.is_active ?? true
@@ -253,6 +268,18 @@ export function UserDetailModal({ user, onClose, onUserUpdated }: Props) {
                 >
                   <IonIcon name={isActive ? 'ban-outline' : 'checkmark-circle-outline'} size={14} />
                   {isActive ? 'Bloquear conta' : 'Desbloquear conta'}
+                </Button>
+
+                {/* Excluir usuário e todos os dados */}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  loading={loading}
+                  onClick={() => setConfirmDeleteOpen(true)}
+                  className="w-full justify-center font-medium text-white bg-red-600 hover:bg-red-700 border-red-600"
+                >
+                  <IonIcon name="trash-outline" size={14} />
+                  Excluir usuário e todos os dados
                 </Button>
               </div>
             </Section>
@@ -410,6 +437,72 @@ export function UserDetailModal({ user, onClose, onUserUpdated }: Props) {
               >
                 <IonIcon name="checkmark-circle-outline" size={14} />
                 Sim, desbloquear
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal de confirmação de exclusão total ── */}
+      {confirmDeleteOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div
+            className="w-full max-w-md bg-card border border-border rounded-xl shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-border flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-400/15 flex items-center justify-center shrink-0">
+                <IonIcon name="trash-outline" size={20} className="text-red-600 dark:text-red-400" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm font-bold text-foreground">Excluir usuário e todos os dados?</h3>
+                <p className="text-[11px] text-muted-fore truncate">{user.email}</p>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="px-5 py-4 space-y-3 text-xs text-foreground">
+              <p>Esta ação irá <b>remover permanentemente</b> o usuário e todos os dados relacionados:</p>
+              <ul className="space-y-1.5 pl-1">
+                <li className="flex items-start gap-2">
+                  <IonIcon name="person-remove-outline" size={14} className="text-red-500 mt-0.5 shrink-0" />
+                  <span>Conta do usuário</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <IonIcon name="swap-horizontal-outline" size={14} className="text-red-500 mt-0.5 shrink-0" />
+                  <span>Exchanges conectadas</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <IonIcon name="flask-outline" size={14} className="text-red-500 mt-0.5 shrink-0" />
+                  <span>Estratégias, portfólios, snapshots, tickets de suporte, etc.</span>
+                </li>
+              </ul>
+              <div className="rounded-lg bg-amber-50 dark:bg-amber-400/10 border border-amber-200 dark:border-amber-400/20 px-3 py-2 text-[11px] text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                <IonIcon name="warning-outline" size={14} className="shrink-0 mt-0.5" />
+                <span>Esta ação é <b>irreversível</b>. Todos os dados serão apagados e não poderão ser recuperados.</span>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-3 border-t border-border flex justify-end gap-2 bg-muted/30">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setConfirmDeleteOpen(false)}
+                disabled={loading}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                loading={loading}
+                onClick={confirmDelete}
+                className="text-white bg-red-600 hover:bg-red-700 border-red-600"
+              >
+                <IonIcon name="trash-outline" size={14} />
+                Sim, excluir tudo
               </Button>
             </div>
           </div>

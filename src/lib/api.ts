@@ -1,3 +1,5 @@
+import { parseRolesFromJwtPayload } from '@/lib/jwt'
+
 const BASE = '/api/v1'
 
 export class ApiError extends Error {
@@ -30,6 +32,7 @@ export function setToken(token: string) {
 
 export function clearToken() {
   localStorage.removeItem('mex_admin_token')
+  localStorage.removeItem('mex_admin_roles')
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -43,43 +46,88 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     },
   })
 
+  const data = await res.json().catch(() => ({})) as Record<string, unknown>
+
   if (res.status === 401) {
     clearToken()
-    // Redirect to login only if not already there (avoids reload loop)
+    const errCode = typeof data.error === 'string' ? data.error : ''
+    const msg =
+      errCode === 'SESSION_DISPLACED'
+        ? 'Sessão encerrada — sua conta foi acessada em outro dispositivo. Faça login novamente.'
+        : errCode === 'LEGACY_TOKEN'
+          ? 'Sessão antiga. Faça login novamente.'
+          : 'Sessão expirada. Faça login novamente.'
     if (!window.location.pathname.includes('/login')) {
       window.location.assign(window.location.origin + '/admin/login')
     }
-    throw new Error('Unauthorized')
+    throw new Error(msg)
   }
 
-  const data = await res.json()
-
-  // Trata erro mesmo quando status é 200 mas success=false
-  if (!res.ok || data?.success === false) {
-    throw new ApiError(data?.error ?? `HTTP_${res.status}`, data?.message ?? data?.error ?? `HTTP ${res.status}`)
+  if (!res.ok || data.success === false) {
+    const err = typeof data.error === 'string' ? data.error : `HTTP_${res.status}`
+    const msg =
+      typeof data.message === 'string'
+        ? data.message
+        : typeof data.error === 'string'
+          ? data.error
+          : `HTTP ${res.status}`
+    throw new ApiError(err, msg)
   }
   return data as T
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
+/** Login admin — fetch dedicado (não usa `request()` para evitar redirect 401 no próprio login). */
 export async function apiLogin(email: string, password: string) {
-  const data = await request<{ token: string; user?: { roles?: string[] } }>('/admin/auth/login', {
+  const res = await fetch(`${BASE}/admin/auth/login`, {
     method: 'POST',
-    body: JSON.stringify({ email, password, device_id: getDeviceId() }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
   })
 
-  // Extrai roles do payload JWT caso a API não retorne user.roles
-  let roles: string[] = data.user?.roles ?? []
-  if (!roles.length && data.token) {
+  const data = (await res.json().catch(() => ({}))) as {
+    success?: boolean
+    token?: string
+    error?: string
+    message?: string
+    user?: { roles?: string[]; name?: string; email?: string }
+  }
+
+  if (!res.ok || data.success === false || !data.token) {
+    const msg =
+      typeof data.error === 'string'
+        ? data.error
+        : typeof data.message === 'string'
+          ? data.message
+          : `Erro ao entrar (HTTP ${res.status})`
+    throw new Error(msg)
+  }
+
+  let roles: string[] = Array.isArray(data.user?.roles) ? data.user.roles : []
+  if (!roles.length) {
     try {
-      const payload = JSON.parse(atob(data.token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
-      roles = payload.roles ?? payload.role ?? payload.permissions ?? []
+      const payload = JSON.parse(
+        atob(data.token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))
+      ) as Record<string, unknown>
+      roles = parseRolesFromJwtPayload(payload)
     } catch { /* ignora */ }
   }
 
-  if (!roles.includes('admin')) throw new Error('Acesso negado — conta sem permissão admin')
+  if (!roles.includes('admin')) {
+    throw new Error('Acesso negado — conta sem permissão admin')
+  }
+
+  localStorage.setItem('mex_admin_roles', JSON.stringify(roles))
   setToken(data.token)
-  return { token: data.token, user: { roles } }
+
+  return {
+    token: data.token,
+    user: {
+      roles,
+      name: data.user?.name ?? email,
+      email: data.user?.email ?? email.trim().toLowerCase(),
+    },
+  }
 }
 
 // ── Admin: Dashboard ──────────────────────────────────────────────────────────
@@ -117,6 +165,12 @@ export async function apiBlockUser(userId: string) {
 
 export async function apiUnblockUser(userId: string) {
   return request<{ success: boolean }>(`/admin/users/${userId}/unblock`, { method: 'POST' })
+}
+
+export async function apiDeleteUserAndData(userId: string) {
+  return request<{ success: boolean }>(`/admin/users/${userId}`, {
+    method: 'DELETE',
+  })
 }
 
 // ── Admin: Support ────────────────────────────────────────────────────────────
@@ -222,7 +276,7 @@ export async function apiAdminSendPush(payload: { title: string; body: string; u
   })
 }
 
-// ── Admin: Security / Audit ──────────────────────────────────────────────────
+//─ Admin: Security / Audit ──────────────────────────────────────────────────
 export interface SecurityEventItem {
   _id?: { $oid: string } | string
   event: string

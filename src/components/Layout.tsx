@@ -9,24 +9,24 @@ import { NotificationsPanel } from '@/components/NotificationsPanel'
 import type { ReactNode } from 'react'
 
 const NAV = [
-  { to: '/',           icon: 'grid-outline',            label: 'Dashboard',    end: true },
-  { to: '/users',      icon: 'people-outline',          label: 'Usuários'               },
-  { to: '/support',    icon: 'headset-outline',         label: 'Suporte'                },
-  { to: '/exchanges',  icon: 'swap-horizontal-outline', label: 'Exchanges'              },
-  { to: '/jobs',       icon: 'hardware-chip-outline',   label: 'Jobs'                   },
-  { to: '/costs',      icon: 'cash-outline',            label: 'Custos'                 },
-  { to: '/security',   icon: 'shield-checkmark-outline', label: 'Segurança'             },
-  { to: '/email',      icon: 'mail-outline',             label: 'Email'                 },
-  { to: '/settings',    icon: 'settings-outline',        label: 'Configurações'          },
-  { to: '/app-config',  icon: 'toggle-outline',           label: 'Feature Flags'          },
+  { to: '/', icon: 'grid-outline', label: 'Dashboard', end: true },
+  { to: '/users', icon: 'people-outline', label: 'Usuários' },
+  { to: '/support', icon: 'headset-outline', label: 'Suporte' },
+  { to: '/exchanges', icon: 'swap-horizontal-outline', label: 'Exchanges' },
+  { to: '/jobs', icon: 'hardware-chip-outline', label: 'Jobs' },
+  { to: '/costs', icon: 'cash-outline', label: 'Custos' },
+  { to: '/security', icon: 'shield-checkmark-outline', label: 'Segurança' },
+  { to: '/email', icon: 'mail-outline', label: 'Email' },
+  { to: '/settings', icon: 'settings-outline', label: 'Configurações' },
+  { to: '/app-config', icon: 'toggle-outline', label: 'Feature Flags' },
 ]
 
 export function Layout({ children }: { children: ReactNode }) {
-  const { user, logout }   = useAuth()
-  const { theme, toggle }  = useTheme()
-  const { unreadCount }    = useNotifications()
-  const navigate           = useNavigate()
-  const [open,      setOpen]      = useState(false)
+  const { user, logout } = useAuth()
+  const { theme, toggle } = useTheme()
+  const { unreadCount } = useNotifications()
+  const navigate = useNavigate()
+  const [open, setOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
 
   const handleLogout = () => { logout(); navigate('/login') }
@@ -54,12 +54,18 @@ export function Layout({ children }: { children: ReactNode }) {
               title="Expandir menu"
               onClick={() => setCollapsed(false)}
             >
-              <img src={import.meta.env.BASE_URL + 'icons/icon.png'} alt="MEX" className="w-7 h-7 rounded-md object-cover" />
-            </button>
+ <img
+                src={import.meta.env.BASE_URL + 'assets/icons/icon.png'}
+                alt="MEX"
+                className="w-7 h-7 rounded-md object-cover shrink-0"
+              />             </button>
           ) : (
             <>
-              <img src={import.meta.env.BASE_URL + 'icons/icon.png'} alt="MEX" className="w-7 h-7 rounded-md object-cover shrink-0" />
-              <span className="font-semibold text-sm whitespace-nowrap flex-1">
+              <img
+                src={import.meta.env.BASE_URL + 'assets/icons/icon.png'}
+                alt="MEX"
+                className="w-7 h-7 rounded-md object-cover shrink-0"
+              />          <span className="font-semibold text-sm whitespace-nowrap flex-1">
                 MEX <span className="text-primary">Admin</span>
               </span>
               <button

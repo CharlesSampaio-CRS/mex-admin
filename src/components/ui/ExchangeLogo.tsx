@@ -12,7 +12,6 @@ const EXCHANGE_ICONS: Record<string, string> = {
   kucoin:    '/icons/kucoin.png',
   mercado:   '/icons/mercado.png',
   mexc:      '/icons/mexc.png',
-  novadax:   '/icons/novadax.png',
   okx:       '/icons/okx.png',
 }
 

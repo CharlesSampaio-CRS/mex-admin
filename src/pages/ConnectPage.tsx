@@ -15,7 +15,6 @@ const EXCHANGES = [
   { id: 'bitget',   name: 'Bitget',         icon: '/admin/assets/logos/bitget.png',    passphrase: true,  uid: false },
   { id: 'bitmart',  name: 'BitMart',        icon: '/admin/assets/logos/bitmart.png',   passphrase: false, uid: true, uidLabel: 'Memo (UID)', uidHint: 'Encontre em Perfil → Account Settings → Account ID.' },
   { id: 'coinex',   name: 'CoinEx',         icon: '/admin/assets/logos/coinex.png',    passphrase: false, uid: false },
-  { id: 'novadax',  name: 'NovaDAX',        icon: '/admin/assets/logos/novadax.png',   passphrase: false, uid: false },
   { id: 'mercado',  name: 'Mercado Bitcoin',icon: '/admin/assets/logos/mercado.png',   passphrase: false, uid: false },
 ];
 

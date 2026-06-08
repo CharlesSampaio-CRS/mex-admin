@@ -32,7 +32,6 @@ const EXCHANGE_DOMAIN: Record<string, string> = {
   mexc:            'mexc.com',
   bitmart:         'bitmart.com',
   coinex:          'coinex.com',
-  novadax:         'novadax.com',
   mercado:         'mercadobitcoin.com.br',
   huobi:           'huobi.com',
   bingx:           'bingx.com',

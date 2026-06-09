@@ -31,7 +31,6 @@ const EXCHANGE_DOMAIN: Record<string, string> = {
   gate:            'gate.io',
   mexc:            'mexc.com',
   bitmart:         'bitmart.com',
-  coinex:          'coinex.com',
   mercado:         'mercadobitcoin.com.br',
   huobi:           'huobi.com',
   bingx:           'bingx.com',

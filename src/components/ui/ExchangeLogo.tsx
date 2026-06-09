@@ -5,7 +5,6 @@ const EXCHANGE_ICONS: Record<string, string> = {
   bitmart:   '/icons/bitmart.png',
   bybit:     '/icons/bybit.png',
   coinbase:  '/icons/coinbase.png',
-  coinex:    '/icons/coinex.png',
   gateio:    '/icons/gateio.png',
   gate:      '/icons/gateio.png',
   kraken:    '/icons/kraken.png',

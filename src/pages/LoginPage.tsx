@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { apiLogin } from '@/lib/api'
+import { apiLogin, apiVerifyAdminOtp } from '@/lib/api'
 import { Button } from '@/components/ui/Button'
 import { IonIcon } from '@/components/ui/IonIcon'
 
@@ -16,21 +16,44 @@ export function LoginPage() {
   const [error,        setError]        = useState('')
   const [saveEmail,    setSaveEmail]    = useState(() => !!localStorage.getItem('mex_admin_saved_email'))
   const [accessDenied, setAccessDenied] = useState(false)
+  const [otpStep,       setOtpStep]       = useState(false)
+  const [challengeId,  setChallengeId]  = useState('')
+  const [maskedEmail,  setMaskedEmail]  = useState('')
+  const [otpCode,      setOtpCode]      = useState('')
+
+  const completeLogin = (token: string, user: { email?: string; name?: string; roles?: string[] }) => {
+    login(token, {
+      email: user.email ?? email.trim(),
+      name: user.name ?? email.trim(),
+      roles: user.roles ?? ['admin'],
+    })
+    navigate('/')
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
     try {
+      if (otpStep) {
+        const data = await apiVerifyAdminOtp(challengeId, otpCode)
+        completeLogin(data.token, data.user)
+        return
+      }
+
       const data = await apiLogin(email.trim(), password)
       if (saveEmail) localStorage.setItem('mex_admin_saved_email', email.trim())
       else           localStorage.removeItem('mex_admin_saved_email')
-      login(data.token, {
-        email: data.user.email ?? email.trim(),
-        name: data.user.name ?? email.trim(),
-        roles: data.user.roles,
-      })
-      navigate('/')
+
+      if (data.otp_required) {
+        setChallengeId(data.challenge_id)
+        setMaskedEmail(data.masked_email)
+        setOtpStep(true)
+        setOtpCode('')
+        return
+      }
+
+      completeLogin(data.token, data.user)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Erro ao entrar'
       if (msg.toLowerCase().includes('permissão') || msg.toLowerCase().includes('negado') || msg.toLowerCase().includes('acesso')) {
@@ -98,10 +121,18 @@ export function LoginPage() {
           <div className="h-[3px] bg-gradient-to-r from-accent to-primary" />
           <div className="p-8">
             <p className="text-xs font-bold tracking-widest text-accent uppercase mb-1">Portal de gestão</p>
-            <h1 className="text-xl font-bold text-foreground mb-1">Entrar</h1>
-            <p className="text-sm text-muted-fore mb-6">Use sua conta MEX com role admin</p>
+            <h1 className="text-xl font-bold text-foreground mb-1">
+              {otpStep ? 'Verificação por e-mail' : 'Entrar'}
+            </h1>
+            <p className="text-sm text-muted-fore mb-6">
+              {otpStep
+                ? `Digite o código enviado para ${maskedEmail}`
+                : 'Use sua conta MEX com role admin'}
+            </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {!otpStep && (
+              <>
               <div>
                 <label className="block text-xs font-medium text-muted-fore mb-1.5">E-mail</label>
                 <input
@@ -136,13 +167,40 @@ export function LoginPage() {
                   </button>
                 </div>
               </div>
+              </>
+              )}
+
+              {otpStep && (
+              <div>
+                <label className="block text-xs font-medium text-muted-fore mb-1.5">Código de 6 dígitos</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  required
+                  autoFocus
+                  placeholder="123456"
+                  className="w-full px-3.5 py-2.5 rounded-lg text-sm bg-muted border border-border text-foreground placeholder-muted-fore outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors tracking-widest text-center text-lg"
+                />
+                <button
+                  type="button"
+                  className="text-xs text-muted-fore hover:text-foreground mt-2"
+                  onClick={() => { setOtpStep(false); setOtpCode(''); setError('') }}
+                >
+                  ← Voltar ao login
+                </button>
+              </div>
+              )}
 
               {error && (
                 <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">{error}</p>
               )}
 
               <Button type="submit" loading={loading} className="w-full mt-2" size="lg">
-                Entrar no portal
+                {otpStep ? 'Confirmar código' : 'Entrar no portal'}
               </Button>
             </form>
           </div>

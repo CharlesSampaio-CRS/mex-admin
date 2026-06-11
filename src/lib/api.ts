@@ -93,8 +93,53 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
+
+export type AdminLoginUser = {
+  roles?: string[]
+  name?: string
+  email?: string
+}
+
+export type AdminLoginComplete = {
+  otp_required: false
+  token: string
+  refresh_token?: string
+  user: AdminLoginUser
+}
+
+export type AdminLoginOtpPending = {
+  otp_required: true
+  challenge_id: string
+  masked_email: string
+}
+
+export type AdminLoginResult = AdminLoginComplete | AdminLoginOtpPending
+
+function parseAdminRoles(token: string, user?: AdminLoginUser): string[] {
+  let roles: string[] = Array.isArray(user?.roles) ? user.roles : []
+  if (!roles.length) {
+    try {
+      const payload = JSON.parse(
+        atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))
+      ) as Record<string, unknown>
+      roles = parseRolesFromJwtPayload(payload)
+    } catch { /* ignora */ }
+  }
+  return roles
+}
+
+function finalizeAdminSession(token: string, user: AdminLoginUser) {
+  const roles = parseAdminRoles(token, user)
+  if (!roles.includes('admin')) {
+    throw new Error('Acesso negado — conta sem permissão admin')
+  }
+  sessionStorage.setItem('mex_admin_roles', JSON.stringify(roles))
+  localStorage.removeItem('mex_admin_roles')
+  setToken(token)
+}
+
 /** Login admin — fetch dedicado (não usa `request()` para evitar redirect 401 no próprio login). */
-export async function apiLogin(email: string, password: string) {
+export async function apiLogin(email: string, password: string): Promise<AdminLoginResult> {
   const res = await fetch(`${BASE}/admin/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -103,13 +148,17 @@ export async function apiLogin(email: string, password: string) {
 
   const data = (await res.json().catch(() => ({}))) as {
     success?: boolean
+    otp_required?: boolean
+    challenge_id?: string
+    masked_email?: string
     token?: string
+    refresh_token?: string
     error?: string
     message?: string
-    user?: { roles?: string[]; name?: string; email?: string }
+    user?: AdminLoginUser
   }
 
-  if (!res.ok || data.success === false || !data.token) {
+  if (!res.ok || data.success === false) {
     const msg =
       typeof data.error === 'string'
         ? data.error
@@ -119,31 +168,57 @@ export async function apiLogin(email: string, password: string) {
     throw new Error(msg)
   }
 
-  let roles: string[] = Array.isArray(data.user?.roles) ? data.user.roles : []
-  if (!roles.length) {
-    try {
-      const payload = JSON.parse(
-        atob(data.token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))
-      ) as Record<string, unknown>
-      roles = parseRolesFromJwtPayload(payload)
-    } catch { /* ignora */ }
+  if (data.otp_required && data.challenge_id) {
+    return {
+      otp_required: true,
+      challenge_id: data.challenge_id,
+      masked_email: data.masked_email ?? 'seu e-mail',
+    }
   }
 
-  if (!roles.includes('admin')) {
-    throw new Error('Acesso negado — conta sem permissão admin')
+  if (!data.token) {
+    throw new Error('Resposta de login inválida')
   }
 
-  sessionStorage.setItem('mex_admin_roles', JSON.stringify(roles))
-  localStorage.removeItem('mex_admin_roles')
-  setToken(data.token)
+  finalizeAdminSession(data.token, data.user ?? { email: email.trim() })
 
   return {
+    otp_required: false,
     token: data.token,
-    user: {
-      roles,
-      name: data.user?.name ?? email,
-      email: data.user?.email ?? email.trim().toLowerCase(),
-    },
+    refresh_token: data.refresh_token,
+    user: data.user ?? { email: email.trim() },
+  }
+}
+
+export async function apiVerifyAdminOtp(
+  challengeId: string,
+  code: string,
+): Promise<AdminLoginComplete> {
+  const res = await fetch(`${BASE}/admin/auth/verify-otp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ challenge_id: challengeId, code: code.trim() }),
+  })
+
+  const data = (await res.json().catch(() => ({}))) as {
+    success?: boolean
+    token?: string
+    refresh_token?: string
+    error?: string
+    user?: AdminLoginUser
+  }
+
+  if (!res.ok || data.success === false || !data.token) {
+    throw new Error(typeof data.error === 'string' ? data.error : 'Código inválido')
+  }
+
+  finalizeAdminSession(data.token, data.user ?? {})
+
+  return {
+    otp_required: false,
+    token: data.token,
+    refresh_token: data.refresh_token,
+    user: data.user ?? {},
   }
 }
 

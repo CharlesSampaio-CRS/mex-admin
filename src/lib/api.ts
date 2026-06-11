@@ -22,15 +22,31 @@ export function getDeviceId(): string {
   return getOrCreateDeviceId()
 }
 
+function migrateAuthFromLocalStorage(key: string): void {
+  try {
+    const legacy = localStorage.getItem(key)
+    if (legacy && !sessionStorage.getItem(key)) {
+      sessionStorage.setItem(key, legacy)
+      localStorage.removeItem(key)
+    }
+  } catch {
+    // ignore — SSR ou storage bloqueado
+  }
+}
+
 function getToken(): string | null {
-  return localStorage.getItem('mex_admin_token')
+  migrateAuthFromLocalStorage('mex_admin_token')
+  return sessionStorage.getItem('mex_admin_token')
 }
 
 export function setToken(token: string) {
-  localStorage.setItem('mex_admin_token', token)
+  sessionStorage.setItem('mex_admin_token', token)
+  localStorage.removeItem('mex_admin_token')
 }
 
 export function clearToken() {
+  sessionStorage.removeItem('mex_admin_token')
+  sessionStorage.removeItem('mex_admin_roles')
   localStorage.removeItem('mex_admin_token')
   localStorage.removeItem('mex_admin_roles')
 }
@@ -117,7 +133,8 @@ export async function apiLogin(email: string, password: string) {
     throw new Error('Acesso negado — conta sem permissão admin')
   }
 
-  localStorage.setItem('mex_admin_roles', JSON.stringify(roles))
+  sessionStorage.setItem('mex_admin_roles', JSON.stringify(roles))
+  localStorage.removeItem('mex_admin_roles')
   setToken(data.token)
 
   return {

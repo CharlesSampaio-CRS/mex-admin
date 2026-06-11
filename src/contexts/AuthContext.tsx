@@ -22,12 +22,24 @@ interface AuthCtx {
 const Ctx = createContext<AuthCtx>({} as AuthCtx)
 
 function getRawTokenLocal() {
-  return localStorage.getItem('mex_admin_token')
+  try {
+    const legacy = localStorage.getItem('mex_admin_token')
+    if (legacy && !sessionStorage.getItem('mex_admin_token')) {
+      sessionStorage.setItem('mex_admin_token', legacy)
+      localStorage.removeItem('mex_admin_token')
+    }
+  } catch { /* ignore */ }
+  return sessionStorage.getItem('mex_admin_token')
 }
 
 function loadStoredRoles(): string[] {
   try {
-    const raw = localStorage.getItem(ROLES_KEY)
+    const legacy = localStorage.getItem(ROLES_KEY)
+    if (legacy && !sessionStorage.getItem(ROLES_KEY)) {
+      sessionStorage.setItem(ROLES_KEY, legacy)
+      localStorage.removeItem(ROLES_KEY)
+    }
+    const raw = sessionStorage.getItem(ROLES_KEY)
     if (!raw) return []
     const parsed = JSON.parse(raw)
     return Array.isArray(parsed) ? parsed.map(String) : []
@@ -37,10 +49,12 @@ function loadStoredRoles(): string[] {
 }
 
 function saveStoredRoles(roles: string[]) {
-  localStorage.setItem(ROLES_KEY, JSON.stringify(roles))
+  sessionStorage.setItem(ROLES_KEY, JSON.stringify(roles))
+  localStorage.removeItem(ROLES_KEY)
 }
 
 function clearStoredRoles() {
+  sessionStorage.removeItem(ROLES_KEY)
   localStorage.removeItem(ROLES_KEY)
 }
 

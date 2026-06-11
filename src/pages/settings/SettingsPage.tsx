@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { IonIcon } from '@/components/ui/IonIcon'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
-import { getDeviceId } from '@/lib/api'
+import { getDeviceId, clearToken } from '@/lib/api'
 
 function Section({ icon, title, description, children }: {
   icon: string; title: string; description: string; children: React.ReactNode
@@ -66,7 +66,7 @@ export function SettingsPage() {
   }
 
   const clearSession = () => {
-    localStorage.removeItem('mex_admin_token')
+    clearToken()
     localStorage.removeItem('mex_admin_device_id')
     window.location.reload()
   }

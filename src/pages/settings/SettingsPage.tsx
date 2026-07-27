@@ -5,6 +5,7 @@ import { IonIcon } from '@/components/ui/IonIcon'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
 import { getDeviceId, clearToken } from '@/lib/api'
+import { getMexVersions } from '@/lib/versions'
 
 function Section({ icon, title, description, children }: {
   icon: string; title: string; description: string; children: React.ReactNode
@@ -137,19 +138,29 @@ export function SettingsPage() {
       </Section>
 
       {/* Sobre */}
-      <Section icon="information-circle-outline" title="Sobre" description="Informações do portal">
+      <Section icon="information-circle-outline" title="Sobre" description="Versões dos serviços MEX">
         <div className="space-y-2 text-sm">
-          {[
-            { label: 'Portal',  value: 'MEX Admin' },
-            { label: 'Versão',  value: '1.0.0' },
-            { label: 'Base URL', value: '/api/v1' },
-            { label: 'Ambiente', value: (import.meta as unknown as { env: { MODE: string } }).env.MODE === 'production' ? 'Produção' : 'Desenvolvimento' },
-          ].map(({ label, value }) => (
-            <div key={label} className="flex justify-between items-center py-1.5 border-b border-gray-100 dark:border-white/5 last:border-0">
-              <span className="text-muted-fore">{label}</span>
-              <span className="font-medium text-foreground">{value}</span>
-            </div>
-          ))}
+          {(() => {
+            const v = getMexVersions()
+            const envMode = (import.meta as unknown as { env: { MODE: string } }).env.MODE
+            const rows: { label: string; value: string; hint?: string }[] = [
+              { label: 'App mobile', value: `v${v.mobile}`, hint: v.mobileRuntime !== '—' ? `OTA runtime ${v.mobileRuntime}` : undefined },
+              { label: 'Admin', value: `v${v.admin}` },
+              { label: 'Connect', value: `v${v.connect}` },
+              { label: 'Landing', value: `v${v.landing}` },
+              { label: 'Base URL', value: '/api/v1' },
+              { label: 'Ambiente', value: envMode === 'production' ? 'Produção' : 'Desenvolvimento' },
+            ]
+            return rows.map(({ label, value, hint }) => (
+              <div key={label} className="flex justify-between items-start gap-3 py-1.5 border-b border-border last:border-0">
+                <span className="text-muted-fore shrink-0">{label}</span>
+                <div className="text-right min-w-0">
+                  <span className="font-medium text-foreground font-mono text-xs sm:text-sm">{value}</span>
+                  {hint ? <p className="text-[11px] text-muted-fore mt-0.5">{hint}</p> : null}
+                </div>
+              </div>
+            ))
+          })()}
         </div>
       </Section>
     </div>

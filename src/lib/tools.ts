@@ -1,3 +1,5 @@
+import { MEX_HUB_LOGO_SVG } from '@/lib/assets'
+
 export interface Tool {
   id:              string
   label:           string
@@ -31,6 +33,6 @@ export const TOOLS: Tool[] = [
   { id: 'revenuecat', label: 'RevenueCat',         url: 'https://app.revenuecat.com',                        icon: 'card-outline',            color: '#a855f7', category: 'Stores',   noEmbed: true,  monthlyCostUSD: 0    },
 
   // Site & Ferramentas
-  { id: 'site',       label: 'mex.app.br',         url: 'https://mex.app.br',                                icon: 'earth-outline',           imgIcon: '/admin/icons/icon.png',  color: '#06b6d4', category: 'Site',                     monthlyCostUSD: 0    },
+  { id: 'site',       label: 'mex.app.br',         url: 'https://mex.app.br',                                icon: 'earth-outline',           imgIcon: MEX_HUB_LOGO_SVG,  color: '#06b6d4', category: 'Site',                     monthlyCostUSD: 0    },
   { id: 'conversor',  label: 'USD → BRL',          url: 'https://www.google.com/search?q=dolar+hoje',        icon: 'swap-horizontal-outline', color: '#22d3ee', category: 'Site',     noEmbed: true,  monthlyCostUSD: 0    },
 ]

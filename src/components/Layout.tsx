@@ -6,6 +6,7 @@ import { useNotifications } from '@/contexts/NotificationsContext'
 import { cn } from '@/lib/utils'
 import { IonIcon } from '@/components/ui/IonIcon'
 import { NotificationsPanel } from '@/components/NotificationsPanel'
+import { MexHubLogo } from '@/components/MexHubLogo'
 import type { ReactNode } from 'react'
 
 const NAV = [
@@ -19,6 +20,7 @@ const NAV = [
   { to: '/email', icon: 'mail-outline', label: 'Email' },
   { to: '/settings', icon: 'settings-outline', label: 'Configurações' },
   { to: '/app-config', icon: 'toggle-outline', label: 'Feature Flags' },
+  { to: '/market-config', icon: 'stats-chart-outline', label: 'Fonte de Dados' },
 ]
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -50,22 +52,18 @@ export function Layout({ children }: { children: ReactNode }) {
         <div className="flex items-center h-12 shrink-0 px-3 gap-2">
           {collapsed ? (
             <button
-              className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg hover:bg-muted transition-colors mx-auto"
+              className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg text-primary hover:bg-muted transition-colors mx-auto"
               title="Expandir menu"
               onClick={() => setCollapsed(false)}
             >
- <img
-                src={import.meta.env.BASE_URL + 'assets/icons/icon.png'}
-                alt="MEX"
-                className="w-7 h-7 rounded-md object-cover shrink-0"
-              />             </button>
+              <MexHubLogo size={22} />
+            </button>
           ) : (
             <>
-              <img
-                src={import.meta.env.BASE_URL + 'assets/icons/icon.png'}
-                alt="MEX"
-                className="w-7 h-7 rounded-md object-cover shrink-0"
-              />          <span className="font-semibold text-sm whitespace-nowrap flex-1">
+              <div className="w-7 h-7 shrink-0 text-primary">
+                <MexHubLogo size={28} />
+              </div>
+              <span className="font-semibold text-sm whitespace-nowrap flex-1">
                 MEX <span className="text-primary">Admin</span>
               </span>
               <button

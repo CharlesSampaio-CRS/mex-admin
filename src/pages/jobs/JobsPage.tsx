@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react'
-import { apiAdminJobs, apiAdminTriggerJob, apiAdminJobExecutions } from '@/lib/api'
+import {
+  apiAdminJobs,
+  apiAdminTriggerJob,
+  apiAdminJobExecutions,
+} from '@/lib/api'
 import { Card, CardBody, CardHeader } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { IonIcon } from '@/components/ui/IonIcon'
+import { DailySummarySendModal } from '@/components/DailySummarySendModal'
 import { cn, formatRelative, formatDate } from '@/lib/utils'
 import type { JobStatus, JobExecution } from '@/types'
 
@@ -26,6 +31,7 @@ const JOB_ICONS: Record<string, string> = {
   markets_warmup:   'trending-up-outline',
   strategy_monitor: 'analytics-outline',
   balance_alert:    'wallet-outline',
+  daily_summary:    'newspaper-outline',
   chart_warmup:     'bar-chart-outline',
   api_key_expiry:   'key-outline',
 }
@@ -37,6 +43,8 @@ export function JobsPage() {
   const [loading,    setLoading]    = useState(true)
   const [loadingEx,  setLoadingEx]  = useState(false)
   const [triggering, setTriggering] = useState<string | null>(null)
+  const [summaryModalOpen, setSummaryModalOpen] = useState(false)
+  const [forceMsg, setForceMsg] = useState<string | null>(null)
 
   const loadJobs = () => {
     setLoading(true)
@@ -70,6 +78,12 @@ export function JobsPage() {
     setTriggering(jobId)
     try { await apiAdminTriggerJob(jobId) } catch (e) { console.error(e) }
     setTimeout(() => { loadJobs(); setTriggering(null) }, 1000)
+  }
+
+  const onSummaryDone = (msg: string) => {
+    setForceMsg(msg)
+    loadJobs()
+    loadExecutions('daily_summary')
   }
 
   return (
@@ -115,14 +129,29 @@ export function JobsPage() {
               {(job.last_error || job.error) && (
                 <p className="text-xs text-destructive mt-1 truncate">{job.last_error ?? job.error}</p>
               )}
-              <Button
-                size="sm" variant="secondary"
-                loading={triggering === job.job_id}
-                onClick={e => { e.stopPropagation(); trigger(job.job_id) }}
-                className="mt-2 text-[11px] h-6 px-2"
-              >
-                <IonIcon name="play-outline" size={11} /> Executar
-              </Button>
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                <Button
+                  size="sm" variant="secondary"
+                  loading={triggering === job.job_id}
+                  onClick={e => { e.stopPropagation(); trigger(job.job_id) }}
+                  className="text-[11px] h-6 px-2"
+                >
+                  <IonIcon name="play-outline" size={11} /> Executar
+                </Button>
+                {job.job_id === 'daily_summary' && (
+                  <Button
+                    size="sm" variant="secondary"
+                    onClick={e => { e.stopPropagation(); setSummaryModalOpen(true) }}
+                    className="text-[11px] h-6 px-2 text-primary border-primary/30"
+                    title="Escolher usuários e enviar resumo (push + email)"
+                  >
+                    <IonIcon name="send-outline" size={11} /> Enviar agora
+                  </Button>
+                )}
+              </div>
+              {job.job_id === 'daily_summary' && forceMsg && (
+                <p className="text-[10px] text-muted-fore mt-1.5">{forceMsg}</p>
+              )}
             </button>
           ))}
         </div>
@@ -178,6 +207,13 @@ export function JobsPage() {
           </Card>
         </div>
       </div>
+
+      {summaryModalOpen && (
+        <DailySummarySendModal
+          onClose={() => setSummaryModalOpen(false)}
+          onDone={onSummaryDone}
+        />
+      )}
     </div>
   )
 }

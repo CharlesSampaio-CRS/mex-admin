@@ -1,0 +1,21 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Hub MEX outline Ionicons style -->
+  <line x1="512" y1="404" x2="512" y2="246" stroke="#94A3B8" stroke-width="40" stroke-linecap="round" opacity="0.45"/>
+  <line x1="620" y1="512" x2="778" y2="512" stroke="#94A3B8" stroke-width="40" stroke-linecap="round" opacity="0.45"/>
+  <line x1="512" y1="620" x2="512" y2="778" stroke="#94A3B8" stroke-width="40" stroke-linecap="round" opacity="0.45"/>
+  <line x1="404" y1="512" x2="246" y2="512" stroke="#94A3B8" stroke-width="40" stroke-linecap="round" opacity="0.45"/>
+  <line x1="592" y1="432" x2="726" y2="298" stroke="#94A3B8" stroke-width="34" stroke-linecap="round" opacity="0.28"/>
+  <line x1="592" y1="592" x2="726" y2="726" stroke="#94A3B8" stroke-width="34" stroke-linecap="round" opacity="0.28"/>
+  <line x1="432" y1="592" x2="298" y2="726" stroke="#94A3B8" stroke-width="34" stroke-linecap="round" opacity="0.28"/>
+  <line x1="432" y1="432" x2="298" y2="298" stroke="#94A3B8" stroke-width="34" stroke-linecap="round" opacity="0.28"/>
+  <circle cx="512" cy="512" r="108" stroke="#4B6EF5" stroke-width="52" fill="none"/>
+  <circle cx="512" cy="512" r="26" fill="#4B6EF5"/>
+  <circle cx="512" cy="200" r="46" stroke="#F59E0B" stroke-width="48" fill="none"/>
+  <circle cx="824" cy="512" r="46" stroke="#F59E0B" stroke-width="48" fill="none"/>
+  <circle cx="512" cy="824" r="46" stroke="#F59E0B" stroke-width="48" fill="none"/>
+  <circle cx="200" cy="512" r="46" stroke="#F59E0B" stroke-width="48" fill="none"/>
+  <circle cx="268" cy="268" r="30" stroke="#4B6EF5" stroke-width="40" fill="none" opacity="0.65"/>
+  <circle cx="756" cy="268" r="30" stroke="#4B6EF5" stroke-width="40" fill="none" opacity="0.65"/>
+  <circle cx="756" cy="756" r="30" stroke="#4B6EF5" stroke-width="40" fill="none" opacity="0.65"/>
+  <circle cx="268" cy="756" r="30" stroke="#4B6EF5" stroke-width="40" fill="none" opacity="0.65"/>
+</svg>

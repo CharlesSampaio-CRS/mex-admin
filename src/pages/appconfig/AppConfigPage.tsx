@@ -8,11 +8,14 @@ const DEFAULTS: FeatureFlags = {
   ai_chat_enabled:             true,
   price_alerts_enabled:        true,
   orders_enabled:              true,
-  strategies_enabled:          true,
+  strategies_enabled:          false,
+  strategies_allowlist_emails: [],
   pix_deposit_enabled:         true,
   support_attachments_enabled: true,
   registration_enabled:        true,
-  maintenance_mode:             false,
+  maintenance_mode:            false,
+  login_banner_enabled:        false,
+  login_banner_message:        null,
 }
 
 // ─── Sub-componentes ──────────────────────────────────────────────────────────
@@ -82,19 +85,29 @@ function FlagToggle({
 
 export function AppConfigPage() {
   const [flags, setFlags]     = useState<FeatureFlags>(DEFAULTS)
+  const [emailText, setEmailText] = useState('')
+  const [bannerMessage, setBannerMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving]   = useState<string | null>(null)
+  const [savingEmails, setSavingEmails] = useState(false)
+  const [savingBanner, setSavingBanner] = useState(false)
   const [error, setError]     = useState<string | null>(null)
   const [saved, setSaved]     = useState<string | null>(null)
+
+  const applyFlags = useCallback((next: FeatureFlags) => {
+    setFlags({ ...DEFAULTS, ...next })
+    setEmailText((next.strategies_allowlist_emails ?? []).join('\n'))
+    setBannerMessage(next.login_banner_message ?? '')
+  }, [])
 
   // ── Carrega flags do backend ──────────────────────────────────────────────
   useEffect(() => {
     setLoading(true)
     apiGetAppConfig()
-      .then(data => setFlags({ ...DEFAULTS, ...data.flags }))
+      .then(data => applyFlags(data.flags))
       .catch(e => setError(e.message ?? 'Erro ao carregar configurações'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [applyFlags])
 
   // ── Salva um flag específico ──────────────────────────────────────────────
   const toggle = useCallback(async (key: keyof FeatureFlags, value: boolean) => {
@@ -104,7 +117,7 @@ export function AppConfigPage() {
     setFlags(prev => ({ ...prev, [key]: value }))
     try {
       const data = await apiPatchAppConfig({ [key]: value })
-      setFlags({ ...DEFAULTS, ...data.flags })
+      applyFlags(data.flags)
       setSaved(key)
       setTimeout(() => setSaved(null), 2000)
     } catch (e: any) {
@@ -115,6 +128,42 @@ export function AppConfigPage() {
       setSaving(null)
     }
   }, [])
+
+  const saveAllowlist = useCallback(async () => {
+    setSavingEmails(true)
+    setError(null)
+    try {
+      const emails = emailText
+        .split(/[\n,;]+/)
+        .map(e => e.trim().toLowerCase())
+        .filter(Boolean)
+      const data = await apiPatchAppConfig({ strategies_allowlist_emails: emails })
+      applyFlags(data.flags)
+      setSaved('strategies_allowlist_emails')
+      setTimeout(() => setSaved(null), 2000)
+    } catch (e: any) {
+      setError(e.message ?? 'Erro ao salvar lista de e-mails')
+    } finally {
+      setSavingEmails(false)
+    }
+  }, [emailText, applyFlags])
+
+  const saveBannerMessage = useCallback(async () => {
+    setSavingBanner(true)
+    setError(null)
+    try {
+      const data = await apiPatchAppConfig({
+        login_banner_message: bannerMessage.trim(),
+      })
+      applyFlags(data.flags)
+      setSaved('login_banner_message')
+      setTimeout(() => setSaved(null), 2000)
+    } catch (e: any) {
+      setError(e.message ?? 'Erro ao salvar mensagem do banner')
+    } finally {
+      setSavingBanner(false)
+    }
+  }, [bannerMessage, applyFlags])
 
   const fmt = (ts?: number) =>
     ts ? new Date(ts).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '—'
@@ -183,9 +232,34 @@ export function AppConfigPage() {
           checked={flags.strategies_enabled}
           onChange={v => toggle('strategies_enabled', v)}
           disabled={saving === 'strategies_enabled'}
-          label={`Estratégias ${saved === 'strategies_enabled' ? '✓' : ''}`}
-          description="Criação e gerenciamento de estratégias automatizadas"
+          label={`Robô para todos ${saved === 'strategies_enabled' ? '✓' : ''}`}
+          description="Ligado = todos usam o robô. Desligado = só os e-mails da lista abaixo."
         />
+        <div className="py-3 border-b border-gray-100 dark:border-white/5 space-y-2">
+          <div>
+            <p className="text-sm font-medium text-foreground">
+              Allowlist do robô {saved === 'strategies_allowlist_emails' ? '✓' : ''}
+            </p>
+            <p className="text-xs text-muted-fore mt-0.5">
+              Um e-mail por linha. Com a flag acima desligada, só estes usuários acessam o robô no app.
+            </p>
+          </div>
+          <textarea
+            value={emailText}
+            onChange={e => setEmailText(e.target.value)}
+            rows={5}
+            placeholder="usuario@exemplo.com"
+            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-fore focus:outline-none focus:ring-2 focus:ring-primary/30"
+          />
+          <button
+            type="button"
+            disabled={savingEmails}
+            onClick={saveAllowlist}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold disabled:opacity-50"
+          >
+            {savingEmails ? 'Salvando…' : 'Salvar lista'}
+          </button>
+        </div>
         <FlagToggle
           checked={flags.pix_deposit_enabled}
           onChange={v => toggle('pix_deposit_enabled', v)}
@@ -211,6 +285,47 @@ export function AppConfigPage() {
           label={`Novos cadastros ${saved === 'registration_enabled' ? '✓' : ''}`}
           description="Permite que novos usuários criem conta. Desative para fechar o acesso."
         />
+      </Section>
+
+      {/* ── Banner de login ──────────────────────────────────────────────── */}
+      <Section
+        icon="megaphone-outline"
+        title="Banner de login"
+        description="Aviso na tela de login (sem bloquear o app inteiro)"
+        accent={flags.login_banner_enabled ? 'bg-amber-500' : undefined}
+      >
+        <FlagToggle
+          checked={flags.login_banner_enabled}
+          onChange={v => toggle('login_banner_enabled', v)}
+          disabled={saving === 'login_banner_enabled'}
+          label={`Banner de login ${saved === 'login_banner_enabled' ? '✓' : ''}`}
+          description="Exibe um aviso na tela de login. Diferente do modo manutenção: o app continua utilizável."
+        />
+        <div className="py-3 space-y-2">
+          <div>
+            <p className="text-sm font-medium text-foreground">
+              Mensagem do banner {saved === 'login_banner_message' ? '✓' : ''}
+            </p>
+            <p className="text-xs text-muted-fore mt-0.5">
+              Texto mostrado quando o banner está ativo. Deixe vazio para usar a mensagem padrão do app.
+            </p>
+          </div>
+          <textarea
+            value={bannerMessage}
+            onChange={e => setBannerMessage(e.target.value)}
+            rows={3}
+            placeholder="Ex.: Estamos com instabilidade temporária. Tente novamente em breve."
+            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-fore focus:outline-none focus:ring-2 focus:ring-primary/30"
+          />
+          <button
+            type="button"
+            disabled={savingBanner}
+            onClick={saveBannerMessage}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold disabled:opacity-50"
+          >
+            {savingBanner ? 'Salvando…' : 'Salvar mensagem'}
+          </button>
+        </div>
       </Section>
 
       {/* ── Manutenção ───────────────────────────────────────────────────── */}

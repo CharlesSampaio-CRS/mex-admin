@@ -4,6 +4,7 @@ import {
   apiAdminSendEmail,
   type SendAdminEmailPayload,
 } from '@/lib/api'
+import { MEX_APP_ICON_PNG } from '@/lib/assets'
 import type { AdminUser, Plan } from '@/types'
 import { IonIcon } from '@/components/ui/IonIcon'
 
@@ -63,9 +64,9 @@ const PRESETS = [
 // ─── Badges de plano ──────────────────────────────────────────────────────────
 
 const PLAN_BADGE: Record<Plan, { label: string; cls: string }> = {
-  premium: { label: 'PREMIUM', cls: 'bg-amber-500/20 text-amber-400 border border-amber-500/30' },
-  pro:     { label: 'PRO',     cls: 'bg-violet-500/20 text-violet-400 border border-violet-500/30' },
-  free:    { label: 'FREE',    cls: 'bg-slate-700/60 text-slate-500 border border-slate-700/60' },
+  premium: { label: 'PREMIUM', cls: 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30' },
+  pro:     { label: 'PRO',     cls: 'bg-violet-500/15 text-violet-700 dark:text-violet-400 border border-violet-500/30' },
+  free:    { label: 'FREE',    cls: 'bg-muted text-muted-fore border border-border' },
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -83,7 +84,7 @@ function htmlToText(html: string): string {
 
 // ─── Preview HTML — replica fiel do template Rust ────────────────────────────
 
-const LOGO_URL = '/admin/icons/icon.png'
+const LOGO_URL = MEX_APP_ICON_PNG
 const ACCENT   = '#7c6af7'
 
 function buildPreview(subject: string, body: string, recipientName = 'João Silva'): string {
@@ -157,6 +158,13 @@ function buildPreview(subject: string, body: string, recipientName = 'João Silv
 
 const DEFAULT_BODY = `<p>Olá <strong>{{nome}}</strong>,</p>\n<p></p>`
 
+const sectionCls = 'bg-card rounded-2xl border border-border p-4'
+const sectionTitleCls = 'text-[11px] font-bold text-muted-fore uppercase tracking-widest mb-3 flex items-center gap-1.5'
+const inputCls = 'w-full bg-muted text-foreground border border-border rounded-xl px-3 py-2 text-sm placeholder:text-muted-fore focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-colors'
+const listItemBase = 'w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-all'
+const listItemSelected = 'bg-primary/10 text-primary'
+const listItemIdle = 'text-foreground hover:bg-muted/80'
+
 export function EmailPage() {
   const [allUsers, setAllUsers]         = useState<AdminUser[]>([])
   const [loadingUsers, setLoadingUsers] = useState(true)
@@ -178,15 +186,6 @@ export function EmailPage() {
       .finally(() => setLoadingUsers(false))
   }, [])
 
-  // Preview ao vivo — atualiza a cada render
-  useEffect(() => {
-    const doc = iframeRef.current?.contentDocument
-    if (!doc) return
-    doc.open()
-    doc.write(buildPreview(subject, html, targetUser?.name ?? 'João Silva'))
-    doc.close()
-  })
-
   const filteredUsers = search.trim()
     ? allUsers.filter(u =>
         u.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -196,6 +195,15 @@ export function EmailPage() {
 
   const targetUser  = allUsers.find(u => u.user_id === targetId)
   const isBroadcast = !targetId
+
+  // Preview ao vivo — atualiza a cada render
+  useEffect(() => {
+    const doc = iframeRef.current?.contentDocument
+    if (!doc) return
+    doc.open()
+    doc.write(buildPreview(subject, html, targetUser?.name ?? 'João Silva'))
+    doc.close()
+  })
 
   function selectPreset(id: string) {
     const p = PRESETS.find(x => x.id === id)
@@ -238,13 +246,13 @@ export function EmailPage() {
       {/* ── Cabeçalho ─────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/25
+          <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20
                           flex items-center justify-center">
-            <IonIcon name="mail-outline" size={18} className="text-indigo-400" />
+            <IonIcon name="mail-outline" size={18} className="text-primary" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white leading-tight">Enviar Email</h1>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <h1 className="text-lg font-bold text-foreground leading-tight">Enviar Email</h1>
+            <p className="text-xs text-muted-fore mt-0.5">
               Compose e envie mensagens para usuários
             </p>
           </div>
@@ -254,8 +262,8 @@ export function EmailPage() {
         <div className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5
                          rounded-full border transition-colors ${
           isBroadcast
-            ? 'bg-amber-500/10 border-amber-500/25 text-amber-400'
-            : 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
+            ? 'bg-amber-500/10 border-amber-500/25 text-amber-700 dark:text-amber-400'
+            : 'bg-emerald-500/10 border-emerald-500/25 text-emerald-700 dark:text-emerald-400'
         }`}>
           <IonIcon name={isBroadcast ? 'radio-outline' : 'person-circle-outline'} size={13} />
           {isBroadcast
@@ -271,73 +279,67 @@ export function EmailPage() {
         <div className="w-[400px] flex-shrink-0 flex flex-col gap-3 overflow-y-auto pb-1 pr-0.5">
 
           {/* — Destinatário ——————————————————————————————————————————————— */}
-          <section className="bg-slate-800/50 rounded-2xl border border-slate-700/60 p-4">
-            <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest
-                           mb-3 flex items-center gap-1.5">
-              <IonIcon name="people-outline" size={12} className="text-slate-500" />
+          <section className={sectionCls}>
+            <h2 className={sectionTitleCls}>
+              <IonIcon name="people-outline" size={12} />
               Destinatário
             </h2>
 
             <div className="relative mb-2.5">
               <IonIcon name="search-outline" size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-fore pointer-events-none" />
               <input
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Buscar por nome ou email…"
-                className="w-full bg-slate-900/70 text-white border border-slate-700/70 rounded-xl
-                           pl-8 pr-8 py-2 text-sm placeholder-slate-600
-                           focus:outline-none focus:ring-2 focus:ring-indigo-500/40
-                           focus:border-indigo-500/50 transition-colors"
+                className={`${inputCls} pl-8 pr-8`}
               />
               {search && (
                 <button onClick={() => setSearch('')}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2
-                             text-slate-500 hover:text-slate-300 transition-colors">
+                             text-muted-fore hover:text-foreground transition-colors">
                   <IonIcon name="close-circle" size={15} />
                 </button>
               )}
             </div>
 
             {loadingUsers ? (
-              <div className="flex items-center justify-center gap-2 text-slate-500 text-sm py-4">
+              <div className="flex items-center justify-center gap-2 text-muted-fore text-sm py-4">
                 <IonIcon name="hourglass-outline" size={14} />
                 Carregando…
               </div>
             ) : (
-              <div className="rounded-xl border border-slate-700/50 overflow-hidden
-                              bg-slate-900/50 max-h-52 overflow-y-auto divide-y divide-slate-800/80">
+              <div className="rounded-xl border border-border overflow-hidden
+                              bg-muted/40 max-h-52 overflow-y-auto divide-y divide-border">
 
                 {/* Broadcast */}
                 <button
                   onClick={() => { setTargetId(''); setSearch('') }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-all ${
-                    !targetId
-                      ? 'bg-indigo-500/15 text-indigo-300'
-                      : 'text-slate-300 hover:bg-slate-800/50'
+                  className={`${listItemBase} gap-3 py-2.5 ${
+                    !targetId ? listItemSelected : listItemIdle
                   }`}
                 >
                   <span className={`w-7 h-7 rounded-full flex items-center justify-center
                                     flex-shrink-0 text-[13px] ${
                     !targetId
-                      ? 'bg-indigo-500/25 text-indigo-300'
-                      : 'bg-slate-700/60 text-slate-400'
+                      ? 'bg-primary/20 text-primary'
+                      : 'bg-muted text-muted-fore'
                   }`}>
                     <IonIcon name="radio-outline" size={13} />
                   </span>
                   <span className="font-semibold flex-1 text-left">Todos os usuários</span>
-                  <span className="text-xs px-1.5 py-0.5 rounded-md bg-slate-700/70
-                                   text-slate-400 font-medium tabular-nums">
+                  <span className="text-xs px-1.5 py-0.5 rounded-md bg-muted
+                                   text-muted-fore font-medium tabular-nums border border-border">
                     {allUsers.length}
                   </span>
                   {!targetId && (
-                    <IonIcon name="checkmark-circle" size={15} className="text-indigo-400 flex-shrink-0" />
+                    <IonIcon name="checkmark-circle" size={15} className="text-primary flex-shrink-0" />
                   )}
                 </button>
 
                 {filteredUsers.length === 0 ? (
-                  <div className="px-3 py-5 text-slate-600 text-sm text-center">
+                  <div className="px-3 py-5 text-muted-fore text-sm text-center">
                     Nenhum usuário encontrado
                   </div>
                 ) : (
@@ -349,15 +351,12 @@ export function EmailPage() {
                       <button
                         key={u.user_id}
                         onClick={() => { setTargetId(u.user_id); setSearch('') }}
-                        className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm
-                                    transition-all ${
-                          selected
-                            ? 'bg-indigo-500/15 text-indigo-300'
-                            : 'text-slate-300 hover:bg-slate-800/50'
+                        className={`${listItemBase} ${
+                          selected ? listItemSelected : listItemIdle
                         }`}
                       >
-                        <span className="w-7 h-7 rounded-full bg-slate-700 flex items-center
-                                         justify-center text-[11px] font-bold text-slate-300
+                        <span className="w-7 h-7 rounded-full bg-primary/15 flex items-center
+                                         justify-center text-[11px] font-bold text-primary
                                          flex-shrink-0 select-none">
                           {initials}
                         </span>
@@ -369,7 +368,7 @@ export function EmailPage() {
                         </span>
                         {selected && (
                           <IonIcon name="checkmark-circle" size={15}
-                            className="text-indigo-400 flex-shrink-0" />
+                            className="text-primary flex-shrink-0" />
                         )}
                       </button>
                     )
@@ -380,10 +379,9 @@ export function EmailPage() {
           </section>
 
           {/* — Template ───────────────────────────────────————————————————— */}
-          <section className="bg-slate-800/50 rounded-2xl border border-slate-700/60 p-4">
-            <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest
-                           mb-3 flex items-center gap-1.5">
-              <IonIcon name="albums-outline" size={12} className="text-slate-500" />
+          <section className={sectionCls}>
+            <h2 className={sectionTitleCls}>
+              <IonIcon name="albums-outline" size={12} />
               Template
             </h2>
             <div className="grid grid-cols-4 gap-2">
@@ -395,8 +393,8 @@ export function EmailPage() {
                   className={`flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl border
                                text-center transition-all ${
                     activePreset === p.id
-                      ? 'border-indigo-500/70 bg-indigo-500/10 scale-[1.04] shadow-sm shadow-indigo-500/20'
-                      : 'border-slate-700/50 bg-slate-900/40 hover:border-slate-600 hover:bg-slate-800/50 hover:scale-[1.02]'
+                      ? 'border-primary/60 bg-primary/10 scale-[1.04] shadow-sm shadow-primary/15'
+                      : 'border-border bg-muted/40 hover:border-primary/40 hover:bg-muted hover:scale-[1.02]'
                   }`}
                 >
                   <span
@@ -406,7 +404,7 @@ export function EmailPage() {
                     <IonIcon name={p.icon} size={16} />
                   </span>
                   <span className={`text-[10px] font-semibold leading-tight ${
-                    activePreset === p.id ? 'text-indigo-300' : 'text-slate-500'
+                    activePreset === p.id ? 'text-primary' : 'text-muted-fore'
                   }`}>
                     {p.label}
                   </span>
@@ -416,10 +414,9 @@ export function EmailPage() {
           </section>
 
           {/* — Assunto ────────────────────────────────────────────────────── */}
-          <section className="bg-slate-800/50 rounded-2xl border border-slate-700/60 p-4">
-            <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest
-                           mb-2.5 flex items-center gap-1.5">
-              <IonIcon name="text-outline" size={12} className="text-slate-500" />
+          <section className={`${sectionCls}`}>
+            <h2 className={`${sectionTitleCls} mb-2.5`}>
+              <IonIcon name="text-outline" size={12} />
               Assunto
             </h2>
             <input
@@ -428,26 +425,23 @@ export function EmailPage() {
               onChange={e => setSubject(e.target.value)}
               placeholder="Digite o assunto do email…"
               maxLength={120}
-              className="w-full bg-slate-900/70 text-white border border-slate-700/70 rounded-xl
-                         px-3 py-2 text-sm placeholder-slate-600
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500/40
-                         focus:border-indigo-500/50 transition-colors"
+              className={inputCls}
             />
-            <p className="text-[11px] text-slate-600 mt-1.5 text-right tabular-nums">
+            <p className="text-[11px] text-muted-fore mt-1.5 text-right tabular-nums">
               {subject.length} / 120
             </p>
           </section>
 
           {/* — Corpo HTML ─────────────────────────────────────────────────── */}
-          <section className="bg-slate-800/50 rounded-2xl border border-slate-700/60 p-4">
+          <section className={sectionCls}>
             <div className="flex items-center justify-between mb-2.5">
-              <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest
+              <h2 className="text-[11px] font-bold text-muted-fore uppercase tracking-widest
                              flex items-center gap-1.5">
-                <IonIcon name="code-slash-outline" size={12} className="text-slate-500" />
+                <IonIcon name="code-slash-outline" size={12} />
                 Corpo HTML
               </h2>
-              <code className="text-[10px] bg-indigo-500/15 text-indigo-400
-                               border border-indigo-500/25 px-1.5 py-0.5 rounded-md font-mono">
+              <code className="text-[10px] bg-primary/10 text-primary
+                               border border-primary/25 px-1.5 py-0.5 rounded-md font-mono">
                 {'{{nome}}'}
               </code>
             </div>
@@ -457,16 +451,13 @@ export function EmailPage() {
               rows={13}
               spellCheck={false}
               placeholder="<p>Conteúdo do email em HTML…</p>"
-              className="w-full bg-slate-900/70 text-slate-200 border border-slate-700/70 rounded-xl
-                         px-3 py-2.5 text-xs font-mono placeholder-slate-600 resize-none
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500/40
-                         focus:border-indigo-500/50 transition-colors leading-relaxed"
+              className={`${inputCls} py-2.5 text-xs font-mono resize-none leading-relaxed`}
             />
           </section>
 
           {/* — Feedback ───────────────────────────────────────────────────── */}
           {error && (
-            <div className="bg-red-500/10 border border-red-500/25 text-red-400 text-sm
+            <div className="bg-red-500/10 border border-red-500/25 text-red-600 dark:text-red-400 text-sm
                             rounded-xl px-3 py-2.5 flex items-center gap-2">
               <IonIcon name="close-circle-outline" size={16} className="flex-shrink-0" />
               {error}
@@ -475,8 +466,8 @@ export function EmailPage() {
           {result && (
             <div className={`rounded-xl px-3 py-2.5 text-sm flex items-start gap-2 border ${
               result.errors.length === 0
-                ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
-                : 'bg-amber-500/10 border-amber-500/25 text-amber-400'
+                ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-700 dark:text-emerald-400'
+                : 'bg-amber-500/10 border-amber-500/25 text-amber-700 dark:text-amber-400'
             }`}>
               <IonIcon
                 name={result.errors.length === 0 ? 'checkmark-circle-outline' : 'warning-outline'}
@@ -502,11 +493,11 @@ export function EmailPage() {
           <button
             disabled={!canSend}
             onClick={() => setConfirm(true)}
-            className="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-[0.98]
+            className="w-full bg-primary hover:brightness-110 active:scale-[0.98]
                        disabled:opacity-35 disabled:cursor-not-allowed
-                       text-white font-bold py-3 rounded-2xl transition-all
+                       text-primary-fore font-bold py-3 rounded-2xl transition-all
                        flex items-center justify-center gap-2 text-sm
-                       shadow-lg shadow-indigo-500/20"
+                       shadow-lg shadow-primary/20"
           >
             {sending ? (
               <><IonIcon name="hourglass-outline" size={16} /> Enviando…</>
@@ -523,16 +514,16 @@ export function EmailPage() {
 
         {/* ══ Coluna direita: Preview ao vivo ══════════════════════════════ */}
         <div className="flex-1 min-w-0 flex flex-col min-h-0">
-          <div className="bg-slate-800/50 rounded-2xl border border-slate-700/60
+          <div className="bg-card rounded-2xl border border-border
                           overflow-hidden flex flex-col flex-1 min-h-0">
 
             {/* Chrome de email-client fake */}
-            <div className="px-4 py-3 border-b border-slate-700/60 bg-slate-800/70 flex-shrink-0">
+            <div className="px-4 py-3 border-b border-border bg-muted/50 flex-shrink-0">
               <div className="flex items-center gap-1.5 mb-3">
                 <div className="w-3 h-3 rounded-full bg-red-500/60" />
                 <div className="w-3 h-3 rounded-full bg-amber-400/60" />
                 <div className="w-3 h-3 rounded-full bg-green-500/60" />
-                <span className="text-[11px] text-slate-500 ml-2 font-medium tracking-wide select-none">
+                <span className="text-[11px] text-muted-fore ml-2 font-medium tracking-wide select-none">
                   Preview — exatamente como o usuário receberá
                 </span>
               </div>
@@ -545,10 +536,10 @@ export function EmailPage() {
                   { label: 'Assunto', value: subject || '(sem assunto)',        hi: true  },
                 ].map(row => (
                   <div key={row.label} className="flex items-baseline gap-2 text-xs">
-                    <span className="w-14 text-right text-slate-600 font-medium flex-shrink-0">
+                    <span className="w-14 text-right text-muted-fore font-medium flex-shrink-0">
                       {row.label}:
                     </span>
-                    <span className={`truncate ${row.hi ? 'text-slate-200 font-semibold' : 'text-slate-400'}`}>
+                    <span className={`truncate ${row.hi ? 'text-foreground font-semibold' : 'text-muted-fore'}`}>
                       {row.value}
                     </span>
                   </div>
@@ -556,7 +547,7 @@ export function EmailPage() {
               </div>
             </div>
 
-            {/* Iframe — preview ao vivo */}
+            {/* Iframe — preview ao vivo (HTML do email permanece claro de propósito) */}
             <iframe
               ref={iframeRef}
               title="Email preview"
@@ -570,32 +561,34 @@ export function EmailPage() {
 
       {/* ── Modal de confirmação ──────────────────────────────────────────── */}
       {confirm && (
-        <div className="fixed inset-0 bg-black/65 backdrop-blur-sm flex items-center
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/65 backdrop-blur-sm flex items-center
                         justify-center z-50 p-4">
-          <div className="bg-slate-800 border border-slate-700/80 rounded-2xl p-6
-                          w-full max-w-md shadow-2xl shadow-black/40">
+          <div className="bg-card border border-border rounded-2xl p-6
+                          w-full max-w-md shadow-2xl">
 
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-11 h-11 rounded-xl bg-indigo-500/15 border border-indigo-500/30
+              <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/25
                               flex items-center justify-center flex-shrink-0">
-                <IonIcon name="send-outline" size={20} className="text-indigo-400" />
+                <IonIcon name="send-outline" size={20} className="text-primary" />
               </div>
               <div>
-                <h2 className="text-base font-bold text-white">Confirmar envio</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Esta ação não pode ser desfeita</p>
+                <h2 className="text-base font-bold text-foreground">Confirmar envio</h2>
+                <p className="text-xs text-muted-fore mt-0.5">Esta ação não pode ser desfeita</p>
               </div>
             </div>
 
-            <div className="bg-slate-900/60 rounded-xl border border-slate-700/60
-                            divide-y divide-slate-800 mb-4">
+            <div className="bg-muted/50 rounded-xl border border-border
+                            divide-y divide-border mb-4">
               <div className="flex gap-3 px-4 py-2.5 text-sm">
-                <span className="text-slate-500 w-16 flex-shrink-0">Assunto</span>
-                <span className="text-white font-medium truncate">{subject}</span>
+                <span className="text-muted-fore w-16 flex-shrink-0">Assunto</span>
+                <span className="text-foreground font-medium truncate">{subject}</span>
               </div>
               <div className="flex gap-3 px-4 py-2.5 text-sm">
-                <span className="text-slate-500 w-16 flex-shrink-0">Para</span>
+                <span className="text-muted-fore w-16 flex-shrink-0">Para</span>
                 <span className={`font-semibold truncate ${
-                  isBroadcast ? 'text-amber-400' : 'text-emerald-400'
+                  isBroadcast
+                    ? 'text-amber-700 dark:text-amber-400'
+                    : 'text-emerald-700 dark:text-emerald-400'
                 }`}>
                   {isBroadcast
                     ? `Todos os usuários (${allUsers.length})`
@@ -605,13 +598,13 @@ export function EmailPage() {
             </div>
 
             {isBroadcast && (
-              <div className="bg-amber-500/8 border border-amber-500/25 rounded-xl
+              <div className="bg-amber-500/10 border border-amber-500/25 rounded-xl
                               px-3.5 py-3 mb-4 flex items-start gap-2.5">
                 <IonIcon name="warning-outline" size={16}
-                  className="text-amber-400 mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-amber-300/90 leading-relaxed">
+                  className="text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-amber-800 dark:text-amber-300/90 leading-relaxed">
                   Você está enviando para{' '}
-                  <strong className="text-amber-300">
+                  <strong className="text-amber-900 dark:text-amber-300">
                     todos os {allUsers.length} usuários ativos
                   </strong>.{' '}
                   Revise bem o conteúdo antes de confirmar.
@@ -622,17 +615,17 @@ export function EmailPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirm(false)}
-                className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2.5
+                className="flex-1 bg-muted hover:bg-muted/80 text-foreground border border-border py-2.5
                            rounded-xl text-sm font-medium transition-colors"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleSend}
-                className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-2.5
+                className="flex-1 bg-primary hover:brightness-110 text-primary-fore py-2.5
                            rounded-xl text-sm font-bold transition-all
                            flex items-center justify-center gap-2
-                           shadow-md shadow-indigo-500/25"
+                           shadow-md shadow-primary/25"
               >
                 <IonIcon name="send-outline" size={15} />
                 Enviar agora
@@ -644,4 +637,3 @@ export function EmailPage() {
     </div>
   )
 }
-

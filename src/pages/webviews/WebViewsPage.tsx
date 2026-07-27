@@ -23,7 +23,7 @@ export function WebViewsPage() {
                   style={{ backgroundColor: `${tool.color}18`, border: `1.5px solid ${tool.color}35` }}
                 >
                   {tool.imgIcon
-                    ? <img src={tool.imgIcon} alt={tool.label} className="w-9 h-9 rounded-xl object-cover" />
+                    ? <img src={tool.imgIcon} alt={tool.label} className="w-9 h-9 object-contain" />
                     : <IonIcon name={tool.icon as any} size={28} style={{ color: tool.color }} />
                   }
                 </div>

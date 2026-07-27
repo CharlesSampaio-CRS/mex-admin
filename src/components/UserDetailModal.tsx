@@ -3,7 +3,7 @@ import { formatDate, planColor, planLabel, cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 import { IonIcon } from '@/components/ui/IonIcon'
 import { ExchangeLogo } from '@/components/ui/ExchangeLogo'
-import { apiUpdateUserPlan, apiBlockUser, apiUnblockUser, apiDeleteUserAndData } from '@/lib/api'
+import { apiUpdateUserPlan, apiBlockUser, apiUnblockUser, apiDeleteUserAndData, apiAdminSendDailySummary } from '@/lib/api'
 import type { AdminUser } from '@/types'
 
 const PLANS = ['free', 'pro', 'premium'] as const
@@ -61,6 +61,8 @@ export function UserDetailModal({ user, onClose, onUserUpdated }: Props) {
   const [confirmUnblockOpen, setConfirmUnblockOpen] = useState(false)
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
   const [blockReason, setBlockReason] = useState('')
+  const [summarySending, setSummarySending] = useState(false)
+  const [summaryMsg, setSummaryMsg] = useState<string | null>(null)
 
   const handlePlan = async (newPlan: string) => {
     if (newPlan === user.subscription_plan) return
@@ -114,6 +116,23 @@ export function UserDetailModal({ user, onClose, onUserUpdated }: Props) {
       console.error(e)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const sendDailySummary = async () => {
+    if (!window.confirm(
+      `Enviar resumo do dia agora (push + email) para ${user.email}?\n\nIgnora horário e cooldown.`,
+    )) return
+    setSummarySending(true)
+    setSummaryMsg(null)
+    try {
+      await apiAdminSendDailySummary({ user_id: user.user_id, force: true })
+      setSummaryMsg('Resumo enviado (push + email)')
+    } catch (e) {
+      console.error(e)
+      setSummaryMsg(e instanceof Error ? e.message : 'Falha ao enviar resumo')
+    } finally {
+      setSummarySending(false)
     }
   }
 
@@ -269,6 +288,21 @@ export function UserDetailModal({ user, onClose, onUserUpdated }: Props) {
                   <IonIcon name={isActive ? 'ban-outline' : 'checkmark-circle-outline'} size={14} />
                   {isActive ? 'Bloquear conta' : 'Desbloquear conta'}
                 </Button>
+
+                {/* Resumo diário agora */}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  loading={summarySending}
+                  onClick={() => void sendDailySummary()}
+                  className="w-full justify-center font-medium text-primary border-primary/30"
+                >
+                  <IonIcon name="newspaper-outline" size={14} />
+                  Enviar resumo do dia
+                </Button>
+                {summaryMsg && (
+                  <p className="text-[11px] text-muted-fore text-center -mt-1">{summaryMsg}</p>
+                )}
 
                 {/* Excluir usuário e todos os dados */}
                 <Button

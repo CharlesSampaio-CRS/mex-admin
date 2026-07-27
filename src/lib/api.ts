@@ -228,9 +228,38 @@ export async function apiDashboardStats() {
 }
 
 // ── Admin: Users ──────────────────────────────────────────────────────────────
-export async function apiListUsers(page = 1, search = '', plan = '') {
-  const q = new URLSearchParams({ page: String(page), ...(search && { search }), ...(plan && { plan }) })
+export async function apiListUsers(
+  page = 1,
+  search = '',
+  plan = '',
+  opts?: { limit?: number; active?: boolean },
+) {
+  const q = new URLSearchParams({ page: String(page) })
+  if (search) q.set('search', search)
+  if (plan) q.set('plan', plan)
+  if (opts?.limit != null) q.set('limit', String(opts.limit))
+  if (opts?.active != null) q.set('active', String(opts.active))
   return request<{ success: boolean; users: import('@/types').AdminUser[]; total: number }>(`/admin/users?${q}`)
+}
+
+/** Busca todos os IDs que batem com o filtro (pagina até o fim; limit máx. da API = 200). */
+export async function apiListUserIdsMatching(filters: {
+  search?: string
+  plan?: string
+  active?: boolean
+}): Promise<{ ids: string[]; total: number }> {
+  const search = filters.search ?? ''
+  const plan = filters.plan ?? ''
+  const limit = 200
+  const first = await apiListUsers(1, search, plan, { limit, active: filters.active })
+  const ids = first.users.map(u => u.user_id)
+  const total = first.total
+  const pages = Math.ceil(total / limit)
+  for (let page = 2; page <= pages; page++) {
+    const d = await apiListUsers(page, search, plan, { limit, active: filters.active })
+    for (const u of d.users) ids.push(u.user_id)
+  }
+  return { ids, total }
 }
 
 export async function apiGetUser(userId: string) {
@@ -355,6 +384,30 @@ export async function apiAdminTriggerJob(name: string) {
   return request<{ success: boolean }>(`/admin/jobs/${name}/run`, { method: 'POST' })
 }
 
+export const apiRunJob = apiAdminTriggerJob
+
+/** Força envio do resumo diário (push + email) agora — lista, 1 user ou broadcast. */
+export async function apiAdminSendDailySummary(payload?: {
+  user_id?: string
+  user_ids?: string[]
+  force?: boolean
+}) {
+  return request<{
+    success: boolean
+    sent?: number
+    requested?: number
+    failed?: number
+    errors?: string[]
+    user_id?: string
+    force?: boolean
+    channels?: string[]
+    error?: string
+  }>('/admin/daily-summary/send', {
+    method: 'POST',
+    body: JSON.stringify(payload ?? { force: true }),
+  })
+}
+
 export async function apiAdminJobExecutions(jobName?: string) {
   const path = jobName ? `/admin/jobs/${jobName}/executions` : '/admin/jobs/executions'
   return request<{ success: boolean; executions: import('@/types').JobExecution[]; total: number }>(path)
@@ -451,22 +504,102 @@ export interface FeatureFlags {
   price_alerts_enabled:        boolean
   orders_enabled:              boolean
   strategies_enabled:          boolean
+  strategies_allowlist_emails?: string[]
   pix_deposit_enabled:         boolean
   support_attachments_enabled: boolean
   registration_enabled:        boolean
   maintenance_mode:            boolean
+  login_banner_enabled:        boolean
+  login_banner_message?:       string | null
   updated_at?: number
   updated_by?: string
+}
+
+export type FeatureFlagsPatch = Partial<FeatureFlags> & {
+  strategies_allowlist_emails?: string[]
+  login_banner_message?: string | null
 }
 
 export async function apiGetAppConfig() {
   return request<{ success: boolean; flags: FeatureFlags }>('/admin/app-config')
 }
 
-export async function apiPatchAppConfig(patch: Partial<FeatureFlags>) {
+export async function apiPatchAppConfig(patch: FeatureFlagsPatch) {
   return request<{ success: boolean; flags: FeatureFlags }>(
     '/admin/app-config',
     { method: 'PATCH', body: JSON.stringify(patch) }
   )
+}
+
+// ── Admin: Market Config (fonte de preços) ───────────────────────────────────
+export type MarketPriceSource = 'coingecko' | 'coinmarketcap'
+
+export interface MarketConfig {
+  price_source: MarketPriceSource
+  updated_at?: number
+  updated_by?: string
+}
+
+export interface MarketHealth {
+  status: 'ok' | 'partial' | 'degraded' | string
+  redis: 'connected' | 'disconnected' | string
+  market_tokens: { coingecko: number; cmc: number; total: number }
+  active_source_ready: boolean
+  active_source_error?: string | null
+  last_job?: {
+    status: string
+    started_at: number
+    finished_at?: number | null
+    duration_ms?: number | null
+    error_msg?: string | null
+  } | null
+}
+
+export async function apiGetMarketConfig() {
+  return request<{ success: boolean; config: MarketConfig; health: MarketHealth }>(
+    '/admin/market-config',
+  )
+}
+
+export async function apiPatchMarketConfig(price_source: MarketPriceSource) {
+  return request<{ success: boolean; config: MarketConfig; health: MarketHealth }>(
+    '/admin/market-config',
+    { method: 'PATCH', body: JSON.stringify({ price_source }) },
+  )
+}
+
+export interface MarketTokenItem {
+  coin_id: string
+  symbol: string
+  name: string
+  image?: string | null
+  price: number
+  change24h: number
+  volume24h: number
+  market_cap: number
+  rank?: number | null
+  quotes_updated_at: number
+  stale: boolean
+}
+
+export async function apiListMarketTokens(params: {
+  source?: MarketPriceSource
+  q?: string
+  page?: number
+  limit?: number
+}) {
+  const qs = new URLSearchParams()
+  if (params.source) qs.set('source', params.source)
+  if (params.q?.trim()) qs.set('q', params.q.trim())
+  if (params.page) qs.set('page', String(params.page))
+  if (params.limit) qs.set('limit', String(params.limit))
+  const query = qs.toString()
+  return request<{
+    success: boolean
+    items: MarketTokenItem[]
+    total: number
+    page: number
+    limit: number
+  }>(`/admin/market-tokens${query ? `?${query}` : ''}`)
 }
 

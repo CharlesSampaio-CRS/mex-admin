@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { apiLogin, apiVerifyAdminOtp } from '@/lib/api'
+import { MexHubLogo } from '@/components/MexHubLogo'
 import { Button } from '@/components/ui/Button'
 import { IonIcon } from '@/components/ui/IonIcon'
 
@@ -109,8 +110,8 @@ export function LoginPage() {
       <div className="w-full max-w-sm">
 
         {/* Logo */}
-        <div className="flex items-center gap-3 mb-8 justify-center">
-          <img src={`${import.meta.env.BASE_URL}assets/icons/icon.png`} alt="MEX" className="w-10 h-10 rounded-xl object-cover" />
+        <div className="flex items-center gap-3 mb-8 justify-center text-primary">
+          <MexHubLogo size={40} />
           <span className="text-xl font-bold tracking-tight text-foreground">
             MEX <span className="text-primary">Admin</span>
           </span>
